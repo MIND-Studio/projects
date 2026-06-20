@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { consumeRestoredPath, ensureSession } from "@/lib/solid/auth";
+import { t } from "@/lib/strings";
 
 export default function LoginCallback() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function LoginCallback() {
   }, [router]);
   return (
     <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-      Anmeldung wird abgeschlossen…
+      {t.loginCompleting}
     </div>
   );
 }

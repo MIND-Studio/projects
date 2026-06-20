@@ -155,6 +155,8 @@ export type Epic = {
   title: string;
   status: string;
   lead: string | null;
+  startDate: string | null; // explicit milestone start (set when work begins)
+  endDate: string | null; // explicit milestone deadline
   description: string;
 };
 
@@ -231,11 +233,39 @@ export function parseEpics(epicsTtl: string): Epic[] {
       title: unesc(b.match(/dct:title "((?:[^"\\]|\\.)*)"/)?.[1] ?? id),
       status: b.match(/mc:status "([^"]+)"/)?.[1] ?? "planned",
       lead: b.match(/(?:ekai|mindp):lead "((?:[^"\\]|\\.)*)"/)?.[1] ?? null,
+      startDate: b.match(/(?:ekai|mindp):startDate "([\d-]+)"/)?.[1] ?? null,
+      endDate: b.match(/(?:ekai|mindp):endDate "([\d-]+)"/)?.[1] ?? null,
       description: b.match(/dct:description """([\s\S]*?)"""/)?.[1]?.trim() ?? "",
     });
   }
   epics.sort((a, b) => a.number - b.number);
   return epics;
+}
+
+/** Set (or replace) a milestone's explicit start date in epics.ttl. Used by the
+    pod backend to stamp a milestone "started" when its first task moves to
+    In progress. Inserts the `mindp:` prefix + the predicate if absent; no-ops if
+    the epic block isn't found. Pure string rewrite — same idiom as rewriteIssue. */
+export function setEpicStartDate(epicsTtl: string, epicId: string, date: string): string {
+  const blockRe = new RegExp(`(<#${epicId}>[\\s\\S]*?)(\\s*\\.\\s*(?:\\n|$))`);
+  const m = epicsTtl.match(blockRe);
+  if (!m) return epicsTtl;
+  let block = m[1];
+  if (/(?:ekai|mindp):startDate\s+"[\d-]+"/.test(block)) {
+    block = block.replace(
+      /(?:ekai|mindp):startDate\s+"[\d-]+"(?:\^\^xsd:date)?/,
+      `mindp:startDate "${date}"^^xsd:date`,
+    );
+  } else {
+    // insert right after the rdf:type line, which every epic block has
+    block = block.replace(/(a mc:Epic\s*;)/, `$1\n    mindp:startDate "${date}"^^xsd:date ;`);
+  }
+  let out = epicsTtl.replace(blockRe, block + m[2]);
+  if (!/@prefix\s+mindp:/.test(out))
+    out = `@prefix mindp: <https://mind.dev/ns/projects#> .\n${out}`;
+  if (!/@prefix\s+xsd:/.test(out))
+    out = `@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n${out}`;
+  return out;
 }
 
 /** Join the three native docs into a Tracker. */
