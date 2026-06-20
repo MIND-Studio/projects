@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/MIND-Studio/projects/compare/v0.2.0...v0.2.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* **ci:** push image to mind-projects (was notes); de-EmAI README examples ([844d169](https://github.com/MIND-Studio/projects/commit/844d169e1c3db0c585df1fa4f899cea360abc1f7))
+
 ## [0.2.0](https://github.com/MIND-Studio/projects/compare/v0.1.0...v0.2.0) (2026-06-20)
 
 
