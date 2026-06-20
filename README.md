@@ -35,7 +35,7 @@ All build-time (`NEXT_PUBLIC_*`) unless noted. Defaults give the personal app.
 | `NEXT_PUBLIC_WORKSPACE` | — | Shared workspace pod root (when `fixed`) |
 | `NEXT_PUBLIC_PROJECT_MODE` | `single` | `single` / `picker` / `subdomain` |
 | `NEXT_PUBLIC_PROJECT` | `workspace` | Project id (single) / apex fallback (subdomain) |
-| `NEXT_PUBLIC_BASE_DOMAIN` | — | Base domain for `subdomain` mode, e.g. `kai.emai.dev` |
+| `NEXT_PUBLIC_BASE_DOMAIN` | — | Base domain for `subdomain` mode, e.g. `projects.example.com` |
 | `NEXT_PUBLIC_PROJECT_ALIASES` | `{}` | JSON `{ "sub": "project-id" }` (subdomain mode) |
 | `NEXT_PUBLIC_BRANDING` | `{}` | JSON map `projectId → {title,kicker,partners,descriptor}` |
 | `NEXT_PUBLIC_ASSISTANT` | `false` | `on` to enable the AI assistant |
@@ -45,18 +45,20 @@ All build-time (`NEXT_PUBLIC_*`) unless noted. Defaults give the personal app.
 | `NEXT_PUBLIC_FRAME_ANCESTORS` | shell origins | CSP `frame-ancestors` for shell embedding |
 | `NEXT_PUBLIC_WRITE_BACKEND` | `pod` | `git` to use the commit-back pipeline |
 | `ISSUES_GIT_*` (server) | — | git remote/branch/bot for the `git` backend |
-| `KAI_*` / LLM env (server) | — | worker creds for the assistant (`git`/EmAI) |
+| `KAI_*` / LLM env (server) | — | worker creds for the assistant |
 
-### Reproduce the EmAI company hub
+### Company hub (multi-tenant, subdomain-routed)
+
+A shared workspace pod, one project per subdomain, with the optional assistant
+and git commit-back turned on:
 
 ```
 NEXT_PUBLIC_WORKSPACE_MODE=fixed
-NEXT_PUBLIC_WORKSPACE=https://pods.emai.dev/emai/
+NEXT_PUBLIC_WORKSPACE=https://pods.mindpods.org/acme/
 NEXT_PUBLIC_PROJECT_MODE=subdomain
-NEXT_PUBLIC_BASE_DOMAIN=kai.emai.dev
-NEXT_PUBLIC_PROJECT=humans-need-not-apply
-NEXT_PUBLIC_PROJECT_ALIASES={"hnna":"humans-need-not-apply"}
-NEXT_PUBLIC_LOCALE=de
+NEXT_PUBLIC_BASE_DOMAIN=projects.example.com
+NEXT_PUBLIC_PROJECT=main
+NEXT_PUBLIC_PROJECT_ALIASES={"web":"website-relaunch"}
 NEXT_PUBLIC_ASSISTANT=on
 NEXT_PUBLIC_WRITE_BACKEND=git
 ISSUES_GIT_URL=...   # + worker creds (server-only)
