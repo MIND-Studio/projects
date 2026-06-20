@@ -1,0 +1,157 @@
+// Seed a demo project into a persona's pod on a mind-node (solidrs) server
+// running in --login-mode open. Mirrors scripts/seed-demo.ts (CSS variant) but
+// uses mind-node's Auth-Code + PKCE + DPoP open-mode flow — no passwords, no
+// account API. Dev-only.
+//
+//   node scripts/seed-mind-node.mjs            # seeds alice on http://localhost:3011
+//   POD_BASE_URL=... SEED_POD=bob node scripts/seed-mind-node.mjs
+import { generateKeyPairSync, sign as nodeSign, randomBytes, createHash } from "node:crypto";
+
+const BASE = (process.env.POD_BASE_URL ?? "http://localhost:3011/").replace(/\/$/, "");
+const USER = process.env.SEED_POD ?? "alice";
+const PROJECT = process.env.SEED_PROJECT ?? "workspace";
+
+const b64url = (b) => Buffer.from(b).toString("base64url");
+const sha256 = (s) => createHash("sha256").update(s).digest();
+const j = async (r) => { const t = await r.text(); try { return JSON.parse(t); } catch { return t; } };
+
+const { publicKey, privateKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
+const jwkFull = publicKey.export({ format: "jwk" });
+const jwk = { crv: jwkFull.crv, kty: jwkFull.kty, x: jwkFull.x, y: jwkFull.y };
+function dpop(htm, htu, ath) {
+  const header = { typ: "dpop+jwt", alg: "ES256", jwk };
+  const payload = { jti: randomBytes(16).toString("hex"), htm, htu, iat: Math.floor(Date.now() / 1000) };
+  if (ath) payload.ath = b64url(sha256(ath));
+  const si = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(payload))}`;
+  const sig = nodeSign("sha256", Buffer.from(si), { key: privateKey, dsaEncoding: "ieee-p1363" });
+  return `${si}.${b64url(sig)}`;
+}
+
+async function tokenFor(username) {
+  const disc = await j(await fetch(`${BASE}/.well-known/openid-configuration`));
+  const redirect_uri = "http://localhost:9999/callback";
+  const reg = await j(await fetch(disc.registration_endpoint, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ redirect_uris: [redirect_uri], client_name: "mind-projects-seed",
+      grant_types: ["authorization_code", "refresh_token"], response_types: ["code"],
+      token_endpoint_auth_method: "none", application_type: "web" }),
+  }));
+  const verifier = b64url(randomBytes(32)), challenge = b64url(sha256(verifier));
+  const state = b64url(randomBytes(8)), nonce = b64url(randomBytes(8));
+  const a = await fetch(disc.authorization_endpoint, {
+    method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, redirect: "manual",
+    body: new URLSearchParams({ username, client_id: reg.client_id, redirect_uri,
+      response_type: "code", scope: "openid webid offline_access", state, nonce,
+      code_challenge: challenge, code_challenge_method: "S256" }),
+  });
+  const code = new URL(a.headers.get("location"), BASE).searchParams.get("code");
+  const tok = await j(await fetch(disc.token_endpoint, {
+    method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", dpop: dpop("POST", disc.token_endpoint) },
+    body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri, client_id: reg.client_id, code_verifier: verifier }),
+  }));
+  if (!tok.access_token) throw new Error(`token exchange failed: ${JSON.stringify(tok)}`);
+  const webid = JSON.parse(Buffer.from(tok.id_token.split(".")[1], "base64url")).webid;
+  return { AT: tok.access_token, webid };
+}
+
+const { AT, webid } = await tokenFor(USER);
+const POD = webid.replace("profile/card#me", "");
+const ROOT = `${POD}projects/${PROJECT}/`;
+console.log(`Seeding ${ROOT}  (WebID ${webid})`);
+
+async function put(url, body, contentType) {
+  const r = await fetch(url, {
+    method: "PUT",
+    headers: { authorization: `DPoP ${AT}`, dpop: dpop("PUT", url, AT), "content-type": contentType },
+    body,
+  });
+  if (![200, 201, 204, 205].includes(r.status))
+    throw new Error(`PUT ${url} → ${r.status} ${await r.text()}`);
+  console.log(`  ✓ ${url.replace(POD, "/")}`);
+}
+
+const PROJECT_TTL = `@prefix dct: <http://purl.org/dc/terms/> .
+@prefix ws: <https://mind.dev/ns/workspace#> .
+
+<#project> a ws:Project ;
+    dct:identifier "${PROJECT}" ;
+    dct:title "My Workspace" ;
+    dct:description "A demo project — tasks, timeline, meetings and briefings, all in your pod." ;
+    ws:status "active" ;
+    ws:startDate "2026-01-01" ;
+    ws:endDate "2026-12-31" .
+
+<#m-owner> a ws:Membership ;
+    ws:agent <${webid}> ;
+    ws:role ws:Owner ;
+    ws:name "Alice" .
+`;
+
+const STATE_TTL = `@prefix : <#> .
+@prefix wf: <https://mind.dev/ns/workflow#> .
+@prefix mc: <https://mind.dev/ns/tracker#> .
+@prefix mindp: <https://mind.dev/ns/projects#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<#this> a mc:Tracker .
+
+<#TASK-001>
+    wf:tracker :this ;
+    mc:number 1 ;
+    dc:title "Welcome to your project board" ;
+    a :Todo , :General ;
+    dct:created "2026-06-01"^^xsd:date ;
+    wf:description """Drag cards between columns to change their state. Everything is stored in your own pod.""" .
+
+<#TASK-002>
+    wf:tracker :this ;
+    mc:number 2 ;
+    dc:title "Plan the first milestone" ;
+    a :InProgress , :General ;
+    dct:created "2026-06-02"^^xsd:date ;
+    mindp:due "2026-07-01"^^xsd:date ;
+    wf:description """Outline scope and a rough timeline.""" .
+
+<#TASK-003>
+    wf:tracker :this ;
+    mc:number 3 ;
+    dc:title "Invite a collaborator" ;
+    a :Done , :General ;
+    dct:created "2026-06-03"^^xsd:date ;
+    wf:description """Share the project container via WAC to work together.""" .
+`;
+
+const TRACKER_TTL = `@prefix dct: <http://purl.org/dc/terms/> .
+@prefix mc: <https://mind.dev/ns/tracker#> .
+
+<#tracker> a mc:Tracker ;
+    dct:title "Tasks" .
+`;
+
+const MEETING_TTL = `@prefix dct: <http://purl.org/dc/terms/> .
+@prefix schema: <http://schema.org/> .
+
+<#meeting> a schema:Event ;
+    dct:identifier "kickoff" ;
+    schema:name "Project kickoff" ;
+    schema:startDate "2026-07-05T10:00" ;
+    schema:endDate "2026-07-05T11:00" ;
+    schema:eventStatus "scheduled" ;
+    schema:description """First sync — goals, scope, who does what.""" .
+`;
+
+const BRIEFING_MD = `# Project briefing — June 2026
+
+Welcome! This is a sample briefing. Briefings are plain Markdown stored in your
+pod under \`briefings/\`. Owners can publish drafts from \`briefings/drafts/\`.
+`;
+
+await put(`${ROOT}project.ttl`, PROJECT_TTL, "text/turtle");
+await put(`${ROOT}tracker/tracker.ttl`, TRACKER_TTL, "text/turtle");
+await put(`${ROOT}tracker/state.ttl`, STATE_TTL, "text/turtle");
+await put(`${ROOT}meetings/kickoff.ttl`, MEETING_TTL, "text/turtle");
+await put(`${ROOT}briefings/2026-06-briefing.md`, BRIEFING_MD, "text/markdown");
+
+console.log("Done. Sign in as the seeded persona to see the project.");

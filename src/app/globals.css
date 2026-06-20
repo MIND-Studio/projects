@@ -1,0 +1,368 @@
+@import "tailwindcss";
+@import "@mind-studio/ui/styles.css";
+@source "../../node_modules/@mind-studio/ui/dist";
+@source "../../node_modules/@mind-studio/core/dist";
+
+/*
+ * EmAI brand on top of @mind-studio/ui tokens. The brand theme itself
+ * (colors/grayscale/radius/fonts) lives in src/lib/theme/emai.ts and is
+ * injected by <ThemeProvider>; this file only adds hub-specific extras.
+ */
+
+@theme inline {
+  --font-display: var(--font-display-var), var(--mind-font-sans);
+  /* status hues used by board/timeline (EmAI brand spec) */
+  --color-ok: #4ade80;
+  --color-warn: #2dd4bf;
+  --color-error: #f87171;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* The hub is dark-only — pin the @mind-studio/core login card to the EmAI
+   dark surfaces regardless of the OS prefers-color-scheme. */
+html.dark .mind-login-root {
+  --mind-card-bg: #1f1f1f;
+  --mind-card-border: #2a2a2a;
+  --mind-text: #f5f5f4;
+  --mind-text-soft: #a8a29e;
+  --mind-text-faint: #78716c;
+  --mind-divider: #2a2a2a;
+  --mind-input-bg: #141414;
+  --mind-input-border: #3d3d3d;
+  --mind-chip-bg: rgba(41, 41, 41, 0.6);
+  --mind-warn: #2dd4bf;
+  --mind-error: #f87171;
+}
+
+/* subtle brand grid backdrop (theme pattern axis renders via this hook) */
+.emai-backdrop {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
+}
+
+/* warm orange aurora behind the top of the viewport — atmosphere, not noise.
+   Two soft blobs drift slowly against the static base glow: the page feels
+   alive without ever pulling focus. */
+/* NOTE: no `position` here — usages position it themselves (fixed/absolute),
+   which also anchors the ::before/::after blobs. */
+.emai-aurora {
+  overflow: hidden;
+  background:
+    radial-gradient(
+      55% 36% at 50% 0%,
+      color-mix(in oklab, var(--primary) 9%, transparent),
+      transparent 70%
+    );
+}
+.emai-aurora::before,
+.emai-aurora::after {
+  content: "";
+  position: absolute;
+  inset: -30% -10%;
+  pointer-events: none;
+}
+.emai-aurora::before {
+  background: radial-gradient(
+    30% 38% at 35% 20%,
+    color-mix(in oklab, var(--primary) 7%, transparent),
+    transparent 70%
+  );
+  animation: emai-drift-a 19s ease-in-out infinite alternate;
+}
+.emai-aurora::after {
+  background: radial-gradient(
+    26% 32% at 68% 12%,
+    color-mix(in oklab, var(--color-warn) 4%, transparent),
+    transparent 70%
+  );
+  animation: emai-drift-b 23s ease-in-out infinite alternate;
+}
+@keyframes emai-drift-a {
+  from { transform: translate3d(-6%, 0, 0) scale(1); }
+  to   { transform: translate3d(7%, 4%, 0) scale(1.15); }
+}
+@keyframes emai-drift-b {
+  from { transform: translate3d(5%, 2%, 0) scale(1.1); }
+  to   { transform: translate3d(-7%, -2%, 0) scale(0.95); }
+}
+
+/* vertical light-shaft falling from the top center — emai.dev's signature beam.
+   Thin, bright at the crown, fading into the aurora. Pure atmosphere. */
+.emai-beam::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 58vh;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--primary) 50%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 14%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+/* drifting motes — faint particles that give the hero depth without motion noise */
+.emai-mote {
+  position: absolute;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--primary) 65%, transparent);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--primary) 50%, transparent);
+  opacity: 0.7;
+}
+.emai-mote.teal {
+  background: color-mix(in oklab, var(--color-warn) 70%, transparent);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--color-warn) 55%, transparent);
+}
+@keyframes emai-float-a { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(7px, -24px, 0); } }
+@keyframes emai-float-b { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-10px, -32px, 0); } }
+@keyframes emai-float-c { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6px, -16px, 0); } }
+.emai-float-a { animation: emai-float-a 11s ease-in-out infinite alternate; }
+.emai-float-b { animation: emai-float-b 15s ease-in-out infinite alternate; }
+.emai-float-c { animation: emai-float-c 9s ease-in-out infinite alternate; }
+
+/* live status dot — the breathing "·" in SYSTEM · ONLINE */
+.emai-status-dot {
+  position: relative;
+  display: inline-flex;
+}
+.emai-status-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--color-warn);
+  animation: emai-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes emai-ping {
+  0%   { transform: scale(1); opacity: 0.55; }
+  75%, 100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* rotating conic glow — the halo behind the login card */
+.emai-orbit {
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    color-mix(in oklab, var(--primary) 30%, transparent) 10%,
+    transparent 28%,
+    transparent 52%,
+    color-mix(in oklab, var(--primary) 14%, transparent) 64%,
+    transparent 80%
+  );
+  filter: blur(32px);
+  animation: emai-spin 16s linear infinite;
+}
+@keyframes emai-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------------------------------------------------------------- motion */
+
+@keyframes emai-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.animate-rise {
+  animation: emai-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* staggered page-load reveal: each direct child rises in sequence */
+.stagger > * {
+  animation: emai-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.stagger > *:nth-child(2) { animation-delay: 0.09s; }
+.stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger > *:nth-child(4) { animation-delay: 0.21s; }
+.stagger > *:nth-child(5) { animation-delay: 0.27s; }
+.stagger > *:nth-child(6) { animation-delay: 0.33s; }
+.stagger > *:nth-child(7) { animation-delay: 0.39s; }
+.stagger > *:nth-child(8) { animation-delay: 0.45s; }
+
+/* heading sheen: a slow light band sweeping through the hero title */
+.text-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--foreground) 38%,
+    color-mix(in oklab, var(--primary) 80%, white) 50%,
+    var(--foreground) 62%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: emai-shimmer 7s ease-in-out infinite;
+}
+@keyframes emai-shimmer {
+  0%   { background-position: 130% 0; }
+  100% { background-position: -130% 0; }
+}
+
+/* soft pulsing glow — timeline "today" beam, Kai while thinking */
+.emai-glow-pulse {
+  box-shadow: 0 0 8px 1px color-mix(in oklab, var(--primary) 60%, transparent);
+  animation: emai-glow-pulse 2.6s ease-in-out infinite;
+}
+@keyframes emai-glow-pulse {
+  50% {
+    box-shadow: 0 0 16px 3px color-mix(in oklab, var(--primary) 80%, transparent);
+  }
+}
+
+/* bars that draw in from the left (uses the standalone `scale` property so
+   it composes with Tailwind translate transforms) */
+.emai-grow {
+  transform-origin: left center;
+  animation: emai-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes emai-grow {
+  from { scale: 0 1; }
+  to   { scale: 1 1; }
+}
+
+/* markers popping in with a little overshoot. fill-mode backwards (not both)
+   so hover scale utilities still win after the animation ends. */
+.emai-pop {
+  animation: emai-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@keyframes emai-pop {
+  from { scale: 0; opacity: 0; }
+  60%  { scale: 1.35; }
+  to   { scale: 1; opacity: 1; }
+}
+
+/* red alert pulse for overdue markers */
+.emai-pulse-error {
+  animation: emai-pulse-error 2.2s ease-in-out infinite;
+}
+@keyframes emai-pulse-error {
+  50% {
+    box-shadow: 0 0 10px 2px color-mix(in oklab, var(--color-error) 70%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .stagger > *,
+  .emai-aurora::before,
+  .emai-aurora::after,
+  .emai-orbit,
+  .text-shimmer,
+  .emai-glow-pulse,
+  .emai-grow,
+  .emai-pop,
+  .emai-pulse-error,
+  .emai-headerline,
+  .emai-float-a,
+  .emai-float-b,
+  .emai-float-c,
+  .emai-status-dot::before {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------- surfaces */
+
+/* interactive cards: lift + orange edge-glow + a cursor-tracking spotlight.
+   --mx/--my are set by the global pointer listener in <Providers>. */
+.glow-hover {
+  position: relative;
+  --mx: 50%;
+  --my: 50%;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+.glow-hover::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    200px circle at var(--mx) var(--my),
+    color-mix(in oklab, var(--primary) 9%, transparent),
+    transparent 70%
+  );
+}
+.glow-hover:hover::after {
+  opacity: 1;
+}
+.glow-hover:hover {
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 20%, transparent),
+    0 10px 34px -14px color-mix(in oklab, var(--primary) 45%, transparent);
+  transform: translateY(-1px);
+}
+
+/* glowing progress indicator (the indicator is the Progress root's only child) */
+.progress-glow > * {
+  box-shadow: 0 0 10px color-mix(in oklab, var(--primary) 55%, transparent);
+}
+
+/* hairline gradient under the header — with a light band slowly scanning it */
+.emai-headerline {
+  background-image:
+    linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklab, var(--primary) 60%, white) 50%,
+      transparent
+    ),
+    linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklab, var(--primary) 55%, transparent) 30%,
+      color-mix(in oklab, var(--primary) 55%, transparent) 70%,
+      transparent
+    );
+  background-size: 35% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  animation: emai-scan 9s ease-in-out infinite;
+}
+@keyframes emai-scan {
+  0%, 100% { background-position: 0% 0, 0 0; }
+  50%      { background-position: 100% 0, 0 0; }
+}
+
+/* ------------------------------------------------------------ scrollbars */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+}

@@ -1,0 +1,11 @@
+.next/
+.next-build/
+node_modules/
+next-env.d.ts
+.playwright-mcp/
+
+# local env (never commit secrets)
+.env*.local
+
+# build info
+*.tsbuildinfo
