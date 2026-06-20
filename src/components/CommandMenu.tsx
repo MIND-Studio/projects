@@ -2,8 +2,6 @@
 
 // ⌘K command palette — navigate, jump to any task or meeting, start actions.
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   CommandDialog,
   CommandEmpty,
@@ -27,12 +25,14 @@ import {
   SquareKanban,
   Users,
 } from "lucide-react";
-import { loadTracker, loadMeetings } from "@/lib/solid/data";
-import { dialogIsOpen, isTyping } from "./KeyboardShortcuts";
-import { usernameOf } from "@/lib/solid/auth";
-import type { Membership, Tracker, Meeting } from "@/lib/solid/turtle";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { profile } from "@/lib/profile";
-import { t, dateLocale } from "@/lib/strings";
+import { usernameOf } from "@/lib/solid/auth";
+import { loadMeetings, loadTracker } from "@/lib/solid/data";
+import type { Meeting, Membership, Tracker } from "@/lib/solid/turtle";
+import { dateLocale, t } from "@/lib/strings";
+import { dialogIsOpen, isTyping } from "./KeyboardShortcuts";
 
 // Nav labels mirror the Shell TABS (English literals). The assistant page only
 // appears when the deployment enables it.
@@ -81,8 +81,12 @@ export function CommandMenu({
   // lazy data load, once, when the palette first opens
   useEffect(() => {
     if (!open || tracker) return;
-    loadTracker().then(setTracker).catch(() => {});
-    loadMeetings().then(setMeetings).catch(() => {});
+    loadTracker()
+      .then(setTracker)
+      .catch(() => {});
+    loadMeetings()
+      .then(setMeetings)
+      .catch(() => {});
   }, [open, tracker]);
 
   const go = useCallback(
@@ -166,17 +170,19 @@ export function CommandMenu({
             <>
               <CommandSeparator />
               <CommandGroup heading={t.cmdTasks}>
-                {tracker.issues.filter((i) => i.state !== "cancelled").map((i) => (
-                  <CommandItem
-                    key={i.id}
-                    value={`${i.id} ${i.title}`}
-                    onSelect={() => go(`/board?issue=${i.id}`)}
-                  >
-                    <SquareKanban />
-                    <span className="truncate">{i.title}</span>
-                    <CommandShortcut>{i.handle}</CommandShortcut>
-                  </CommandItem>
-                ))}
+                {tracker.issues
+                  .filter((i) => i.state !== "cancelled")
+                  .map((i) => (
+                    <CommandItem
+                      key={i.id}
+                      value={`${i.id} ${i.title}`}
+                      onSelect={() => go(`/board?issue=${i.id}`)}
+                    >
+                      <SquareKanban />
+                      <span className="truncate">{i.title}</span>
+                      <CommandShortcut>{i.handle}</CommandShortcut>
+                    </CommandItem>
+                  ))}
               </CommandGroup>
             </>
           )}

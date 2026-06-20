@@ -4,8 +4,8 @@
 // team across the app, so locale-switching here is the single lever that keeps
 // every tracker surface consistent.
 
-import type { IssueState, Role } from "./solid/turtle";
 import { profile } from "./profile";
+import type { IssueState, Role } from "./solid/turtle";
 
 const STATE_LABELS: Record<"en" | "de", Record<IssueState, string>> = {
   en: {

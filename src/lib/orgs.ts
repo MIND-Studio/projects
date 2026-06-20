@@ -2,12 +2,15 @@
 // AP leads (ekai:lead). This module gives them stable slugs/URLs and a
 // tolerant matcher ("East Side Fab" ⇄ "East Side Fab e.V.").
 
-import type { Membership, Role, OrgInfo, OrgKind } from "./solid/turtle";
+import type { Membership, OrgInfo, OrgKind, Role } from "./solid/turtle";
 
 export function orgSlug(name: string): string {
   return name
     .toLowerCase()
-    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
@@ -75,7 +78,10 @@ export const ORG_KIND_LABEL: Record<OrgKind, string> = {
 // then tolerant). Falls back to a derived slug entry so the directory still works
 // before company/orgs.ttl exists.
 
-function resolveOrg(name: string, registry: OrgInfo[]): { id: string; title: string; kind: OrgKind } {
+function resolveOrg(
+  name: string,
+  registry: OrgInfo[],
+): { id: string; title: string; kind: OrgKind } {
   const lc = name.trim().toLowerCase();
   const hit =
     registry.find((o) => o.aliases.some((a) => a.toLowerCase() === lc)) ??

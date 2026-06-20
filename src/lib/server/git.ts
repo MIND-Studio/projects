@@ -88,11 +88,15 @@ export async function commitToRepo(
     git(["add", "--", ...staged], dir);
     git(
       [
-        "-c", `user.name=${bot.name}`,
-        "-c", `user.email=${bot.email}`,
+        "-c",
+        `user.name=${bot.name}`,
+        "-c",
+        `user.email=${bot.email}`,
         "commit",
-        "--author", `${author.name} <${author.email}>`,
-        "-m", message,
+        "--author",
+        `${author.name} <${author.email}>`,
+        "-m",
+        message,
       ],
       dir,
     );

@@ -1,11 +1,14 @@
 // Shared types/helpers for the Workspace hub (apex owner phase). Kept separate
 // from WorkspaceShell so the view components and the shell don't import-cycle.
 
+import { projectHost } from "@/lib/solid/config";
 import type {
-  ProjectSummary, ProjectBoard, WorkspaceMeeting, ProjectBriefings,
+  ProjectBoard,
+  ProjectBriefings,
+  ProjectSummary,
+  WorkspaceMeeting,
 } from "@/lib/solid/data";
 import type { Company, OrgInfo } from "@/lib/solid/turtle";
-import { projectHost } from "@/lib/solid/config";
 
 /** Cross-origin link into a project hub (optionally deep-linked, e.g.
     `/board?issue=X`), carrying ?sso=1 for silent re-auth. */
@@ -29,5 +32,11 @@ export type WsData = {
 };
 
 export function initials(name: string): string {
-  return name.split(/\s+/).map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+  return name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }

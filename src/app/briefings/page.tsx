@@ -4,8 +4,6 @@
 // badges; owners additionally see Kai's drafts and publish them (the WAC gate
 // on briefings/drafts/ makes drafts invisible to everyone else).
 
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import {
   Badge,
   Button,
@@ -16,19 +14,29 @@ import {
   Skeleton,
   Spinner,
 } from "@mind-studio/ui";
-import { toast } from "sonner";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
-import { Shell, useHub } from "@/components/Shell";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Markdown } from "@/components/Markdown";
-import {
-  loadBriefings, loadBriefingDrafts, publishBriefing,
-  readBriefingState, markBriefingRead, type Briefing,
-} from "@/lib/solid/data";
+import { Shell, useHub } from "@/components/Shell";
 import { profile } from "@/lib/profile";
+import {
+  type Briefing,
+  loadBriefingDrafts,
+  loadBriefings,
+  markBriefingRead,
+  publishBriefing,
+  readBriefingState,
+} from "@/lib/solid/data";
 import { t } from "@/lib/strings";
 
 function BriefingCard({
-  b, unread, draft, onOpen, action,
+  b,
+  unread,
+  draft,
+  onOpen,
+  action,
 }: {
   b: Briefing;
   unread: boolean;
@@ -99,8 +107,13 @@ function Briefings() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
-    loadBriefings().then(setPublished).catch(() => setPublished([]));
-    if (isOwner) loadBriefingDrafts().then(setDrafts).catch(() => setDrafts(null));
+    loadBriefings()
+      .then(setPublished)
+      .catch(() => setPublished([]));
+    if (isOwner)
+      loadBriefingDrafts()
+        .then(setDrafts)
+        .catch(() => setDrafts(null));
     setReadSet(readBriefingState(hub.username));
   }, [hub.username, isOwner]);
   useEffect(refresh, [refresh]);

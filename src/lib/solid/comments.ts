@@ -21,8 +21,7 @@ export type Comment = {
 };
 
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-const unesc = (s: string) =>
-  s.replace(/\\"/g, '"').replace(/\\n/g, "\n").replace(/\\\\/g, "\\");
+const unesc = (s: string) => s.replace(/\\"/g, '"').replace(/\\n/g, "\n").replace(/\\\\/g, "\\");
 
 function render(c: Omit<Comment, "url" | "id">, id: string): string {
   const lines = [
@@ -49,7 +48,10 @@ function parse(url: string, ttl: string): Comment | null {
   if (!target || !author) return null;
   return {
     url,
-    id: url.split("/").pop()!.replace(/\.ttl$/, ""),
+    id: url
+      .split("/")
+      .pop()!
+      .replace(/\.ttl$/, ""),
     target: unesc(target),
     author,
     authorName: unesc(ttl.match(/ekai:authorName "((?:[^"\\]|\\.)*)"/)?.[1] ?? usernameOf(author)),
@@ -75,9 +77,9 @@ export async function loadComments(): Promise<Comment[]> {
     throw e;
   }
   const urls = parseContainer(paths.comments, listing).filter((u) => u.endsWith(".ttl"));
-  const comments = (
-    await Promise.all(urls.map(async (u) => parse(u, await getText(u))))
-  ).filter((c): c is Comment => !!c);
+  const comments = (await Promise.all(urls.map(async (u) => parse(u, await getText(u))))).filter(
+    (c): c is Comment => !!c,
+  );
   comments.sort((a, b) => a.created.localeCompare(b.created));
   return comments;
 }

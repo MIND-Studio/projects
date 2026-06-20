@@ -4,11 +4,11 @@
 // (CALENDAR_FEED_TOKEN) — meeting titles/times only, same data every guest
 // already sees in the hub.
 
-import { NextRequest, NextResponse } from "next/server";
-import { workerFor } from "@/lib/server/worker";
-import { resolveProjectId, projectRoot } from "@/lib/solid/config";
-import { parseContainer, parseMeeting } from "@/lib/solid/turtle";
+import { type NextRequest, NextResponse } from "next/server";
 import { calendarIcs } from "@/lib/ics";
+import { workerFor } from "@/lib/server/worker";
+import { projectRoot, resolveProjectId } from "@/lib/solid/config";
+import { parseContainer, parseMeeting } from "@/lib/solid/turtle";
 
 export const runtime = "nodejs";
 
@@ -24,9 +24,7 @@ export async function GET(req: NextRequest) {
     const k = workerFor(projectId);
     const listing = await k.getText(MEETINGS);
     const urls = parseContainer(MEETINGS, listing).filter((u) => u.endsWith(".ttl"));
-    const meetings = await Promise.all(
-      urls.map(async (u) => parseMeeting(u, await k.getText(u))),
-    );
+    const meetings = await Promise.all(urls.map(async (u) => parseMeeting(u, await k.getText(u))));
     meetings.sort((a, b) => a.start.localeCompare(b.start));
 
     return new NextResponse(calendarIcs(meetings), {

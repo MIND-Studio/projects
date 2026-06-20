@@ -142,7 +142,11 @@ const CLASS_STATE: Record<string, IssueState> = {
 
 /** "in-progress" → "InProgress" (a Turtle class local-name). */
 const className = (id: string) =>
-  id.split(/[^A-Za-z0-9]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join("");
+  id
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join("");
 
 /** Short display handle: keep `TASK-019`-style ids verbatim; derive `MC-NNNN`
     for ULID ids (which are unreadable on a board card). */
@@ -285,7 +289,9 @@ function serializeIssue(i: Issue): string {
   const lines = [`<#${i.id}>`, `    wf:tracker :this ;`, `    mc:number ${i.number} ;`];
   if (i.epic) lines.push(`    mc:epic <epics.ttl#${i.epic}> ;`);
   lines.push(`    dc:title "${esc(i.title)}" ;`);
-  lines.push(`    a :${STATE_CLASS[i.state]} , :${i.category ? className(i.category) : "General"} ;`);
+  lines.push(
+    `    a :${STATE_CLASS[i.state]} , :${i.category ? className(i.category) : "General"} ;`,
+  );
   if (i.created) lines.push(`    dct:created "${i.created}"^^xsd:date ;`);
   if (i.modified) lines.push(`    dct:modified "${i.modified}"^^xsd:date ;`);
   if (i.due) lines.push(`    mindp:due "${i.due}"^^xsd:date ;`);
@@ -373,7 +379,7 @@ export const STATE_HEADER = [
   "@prefix dct: <http://purl.org/dc/terms/> .",
   "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
   "",
-  '<#this> a mc:Tracker .',
+  "<#this> a mc:Tracker .",
   "",
 ].join("\n");
 

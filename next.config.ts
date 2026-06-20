@@ -4,8 +4,7 @@ import type { NextConfig } from "next";
 // shell). Defaults cover the prod shell + local shell dev. We never send
 // X-Frame-Options: DENY (that would block framing outright).
 const FRAME_ANCESTORS =
-  process.env.NEXT_PUBLIC_FRAME_ANCESTORS ??
-  "https://shell.mindpods.org http://localhost:3100";
+  process.env.NEXT_PUBLIC_FRAME_ANCESTORS ?? "https://shell.mindpods.org http://localhost:3100";
 
 const nextConfig: NextConfig = {
   output: "standalone",

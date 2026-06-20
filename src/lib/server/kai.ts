@@ -9,13 +9,19 @@
 // write there), then asks Kai to answer the conversation. Kai derives the
 // speaker — and their role — from the folder it was pointed at.
 
-import { workerFor } from "./worker";
 import { ISSUER, projectRoot } from "../solid/config";
-import { applyIssueAction, type Actor } from "./commitback";
 import {
-  parseProject, parseTracker, parseMeeting, parseContainer,
-  type ProjectMeta, type Role, type IssueState, STATES,
+  type IssueState,
+  type ProjectMeta,
+  parseContainer,
+  parseMeeting,
+  parseProject,
+  parseTracker,
+  type Role,
+  STATES,
 } from "../solid/turtle";
+import { type Actor, applyIssueAction } from "./commitback";
+import { workerFor } from "./worker";
 
 const LLM_MODEL = process.env.KAI_LLM_MODEL; // optional override; node enforces allowlist
 
@@ -54,9 +60,9 @@ async function grounding(projectId: string): Promise<{ project: ProjectMeta; con
   // knowledge
   const kListing = await k.getText(`${PROJECT}knowledge/`);
   const kUrls = parseContainer(`${PROJECT}knowledge/`, kListing).filter((u) => u.endsWith(".md"));
-  const knowledge = (
-    await Promise.all(kUrls.map(async (u) => await k.getText(u)))
-  ).join("\n\n---\n\n");
+  const knowledge = (await Promise.all(kUrls.map(async (u) => await k.getText(u)))).join(
+    "\n\n---\n\n",
+  );
 
   const today = new Date().toISOString().slice(0, 10);
   const context = [
@@ -78,8 +84,7 @@ async function complete(projectId: string, system: string, prompt: string): Prom
   // without a real model (the node's echo broker can't emit <action> blocks).
   if (process.env.KAI_DEV_FAKE_LLM === "1") {
     const m = prompt.match(/!move (\S+) (\S+)/);
-    if (m)
-      return `Mache ich.\n<action>{"type":"move","task":"${m[1]}","state":"${m[2]}"}</action>`;
+    if (m) return `Mache ich.\n<action>{"type":"move","task":"${m[1]}","state":"${m[2]}"}</action>`;
     return `[dev-fake] system ${system.length} Zeichen, Frage: ${prompt.split("\n").pop()}`;
   }
   const k = workerFor(projectId);
@@ -88,19 +93,26 @@ async function complete(projectId: string, system: string, prompt: string): Prom
   if (LLM_MODEL) body.model = LLM_MODEL;
   // the broker maps every upstream failure (incl. provider 429s) to
   // "unavailable" — those are usually transient, so retry once before failing
-  let r!: Response, text = "";
+  let r!: Response,
+    text = "";
   for (let attempt = 0; attempt < 2; attempt++) {
-    r = await k.fetch("POST", `${ISSUER.replace(/\/$/, "")}/.scripts/run?script=${encodeURIComponent(LLM_SCRIPT)}`, {
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    r = await k.fetch(
+      "POST",
+      `${ISSUER.replace(/\/$/, "")}/.scripts/run?script=${encodeURIComponent(LLM_SCRIPT)}`,
+      {
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
     text = await r.text();
     if (r.ok) return text;
     const transient = r.status >= 500 || (r.status === 422 && text.includes("unavailable"));
     if (!transient || attempt > 0) break;
     await new Promise((res) => setTimeout(res, 2000));
   }
-  throw Object.assign(new Error(`Pod.llm → ${r.status}: ${text.slice(0, 200)}`), { status: r.status });
+  throw Object.assign(new Error(`Pod.llm → ${r.status}: ${text.slice(0, 200)}`), {
+    status: r.status,
+  });
 }
 
 // ---------------------------------------------------------------- actions
@@ -117,7 +129,9 @@ function extractActions(reply: string): { clean: string; actions: Action[] } {
         const a = JSON.parse(json.trim()) as Action;
         if (a.type === "move" && STATES.includes(a.state)) actions.push(a);
         if (a.type === "create" && a.title) actions.push(a);
-      } catch { /* malformed action — drop silently, text remains */ }
+      } catch {
+        /* malformed action — drop silently, text remains */
+      }
       return "";
     })
     .trim();
@@ -135,7 +149,11 @@ async function applyActions(projectId: string, actor: Actor, actions: Action[]):
         a.type === "move"
           ? await applyIssueAction(projectId, actor, { action: "move", issue: a.task, to: a.state })
           : await applyIssueAction(projectId, actor, {
-              action: "create", title: a.title, epic: a.epic ?? null, due: a.due ?? null, state: "todo",
+              action: "create",
+              title: a.title,
+              epic: a.epic ?? null,
+              due: a.due ?? null,
+              state: "todo",
             });
       results.push(`✓ ${r.message}`);
     } catch (e) {
@@ -182,12 +200,15 @@ export async function answerConversation(
   const { project, context } = await grounding(projectId);
 
   const member = project.members.find((m) => m.agent.includes(`/${username}/`));
-  if (!member) throw Object.assign(new Error(`${username} ist kein Projektmitglied`), { status: 403 });
+  if (!member)
+    throw Object.assign(new Error(`${username} ist kein Projektmitglied`), { status: 403 });
   const role = member.role;
 
   // conversation history (messages are <ts>-<author>.md, lexicographic = chronological)
   const listing = await k.getText(folder);
-  const msgUrls = parseContainer(folder, listing).filter((u) => u.endsWith(".md")).sort();
+  const msgUrls = parseContainer(folder, listing)
+    .filter((u) => u.endsWith(".md"))
+    .sort();
   const history: ChatMessage[] = await Promise.all(
     msgUrls.slice(-20).map(async (u) => {
       const name = u.split("/").pop()!;
@@ -209,7 +230,7 @@ export async function answerConversation(
   ].join("\n");
 
   const transcript = history
-    .map((m) => `${m.author === "kai" ? "Kai" : member.name ?? username}: ${m.text}`)
+    .map((m) => `${m.author === "kai" ? "Kai" : (member.name ?? username)}: ${m.text}`)
     .join("\n\n");
 
   const raw = await complete(projectId, system, transcript);
@@ -217,7 +238,10 @@ export async function answerConversation(
 
   // structural guard: guests' actions are never executed, whatever the model says
   const actor: Actor = {
-    webId: member.agent, username, name: member.name ?? username, actorKind: "agent",
+    webId: member.agent,
+    username,
+    name: member.name ?? username,
+    actorKind: "agent",
   };
   const results = role === "Guest" ? [] : await applyActions(projectId, actor, actions);
   const reply = [clean, ...results].filter(Boolean).join("\n\n");

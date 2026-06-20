@@ -10,9 +10,15 @@
 import { authedFetch } from "./auth";
 import { paths } from "./config";
 import {
-  rewriteIssue, rewriteIssueState, appendIssue, emptyState,
-  parseState, parseEpics, setEpicStartDate,
-  type IssueState, type IssuePatch,
+  appendIssue,
+  emptyState,
+  type IssuePatch,
+  type IssueState,
+  parseEpics,
+  parseState,
+  rewriteIssue,
+  rewriteIssueState,
+  setEpicStartDate,
 } from "./turtle";
 
 async function loadState(): Promise<{ url: string; ttl: string }> {

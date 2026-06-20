@@ -102,12 +102,10 @@ function currentProjectId(): string {
 
 /** The host that serves a given project (inverse of resolveProjectId). */
 export function projectHost(projectId: string): string {
-  const sub =
-    Object.entries(PROJECT_ALIASES).find(([, v]) => v === projectId)?.[0] ?? projectId;
+  const sub = Object.entries(PROJECT_ALIASES).find(([, v]) => v === projectId)?.[0] ?? projectId;
   if (typeof window !== "undefined") {
     const [h, port] = window.location.host.split(":");
-    if (h.split(".").pop() === "localhost")
-      return `${sub}.localhost${port ? `:${port}` : ""}`;
+    if (h.split(".").pop() === "localhost") return `${sub}.localhost${port ? `:${port}` : ""}`;
   }
   return profile.baseDomain ? `${sub}.${profile.baseDomain}` : sub;
 }
@@ -116,12 +114,22 @@ export function projectHost(projectId: string): string {
 
 /** The workspace-level containers the apex router / Workspace hub reads. */
 export const workspacePaths = {
-  get projects() { return `${workspaceRoot()}projects/`; },
-  get workspaceTtl() { return `${workspaceRoot()}workspace.ttl`; },
+  get projects() {
+    return `${workspaceRoot()}projects/`;
+  },
+  get workspaceTtl() {
+    return `${workspaceRoot()}workspace.ttl`;
+  },
   memberIndex: (username: string) => `${workspaceRoot()}members/${username}/index.ttl`,
-  get company() { return `${workspaceRoot()}company/company.ttl`; },
-  get companyOrgs() { return `${workspaceRoot()}company/orgs.ttl`; },
-  get companyKnowledge() { return `${workspaceRoot()}company/knowledge/`; },
+  get company() {
+    return `${workspaceRoot()}company/company.ttl`;
+  },
+  get companyOrgs() {
+    return `${workspaceRoot()}company/orgs.ttl`;
+  },
+  get companyKnowledge() {
+    return `${workspaceRoot()}company/knowledge/`;
+  },
 };
 
 /** Container root for a project, e.g. {workspace}/projects/<id>/. */
@@ -131,17 +139,37 @@ export function projectRoot(projectId: string = currentProjectId()): string {
 
 /** Per-project pod paths. Lazy getters resolve the project at access time. */
 export const paths = {
-  get projectTtl() { return `${projectRoot()}project.ttl`; },
-  get tracker() { return `${projectRoot()}tracker/tracker.ttl`; },
-  get trackerVocab() { return `${projectRoot()}tracker/tracker.ttl`; },
-  get trackerEpics() { return `${projectRoot()}tracker/epics.ttl`; },
-  get trackerState() { return `${projectRoot()}tracker/state.ttl`; },
-  get meetings() { return `${projectRoot()}meetings/`; },
-  get knowledge() { return `${projectRoot()}knowledge/`; },
-  get briefings() { return `${projectRoot()}briefings/`; },
-  get briefingDrafts() { return `${projectRoot()}briefings/drafts/`; },
+  get projectTtl() {
+    return `${projectRoot()}project.ttl`;
+  },
+  get tracker() {
+    return `${projectRoot()}tracker/tracker.ttl`;
+  },
+  get trackerVocab() {
+    return `${projectRoot()}tracker/tracker.ttl`;
+  },
+  get trackerEpics() {
+    return `${projectRoot()}tracker/epics.ttl`;
+  },
+  get trackerState() {
+    return `${projectRoot()}tracker/state.ttl`;
+  },
+  get meetings() {
+    return `${projectRoot()}meetings/`;
+  },
+  get knowledge() {
+    return `${projectRoot()}knowledge/`;
+  },
+  get briefings() {
+    return `${projectRoot()}briefings/`;
+  },
+  get briefingDrafts() {
+    return `${projectRoot()}briefings/drafts/`;
+  },
   chat: (username: string) => `${projectRoot()}chat/${username}/`,
-  get comments() { return `${projectRoot()}comments/`; },
+  get comments() {
+    return `${projectRoot()}comments/`;
+  },
 };
 
 // ------------------------------------------------------------------ branding

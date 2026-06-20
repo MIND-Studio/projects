@@ -6,9 +6,9 @@
 
 import { Avatar, AvatarFallback, Badge, Card, CardContent, Skeleton } from "@mind-studio/ui";
 import { ListTodo } from "lucide-react";
-import { usernameOf } from "@/lib/solid/auth";
-import { workspaceOrgs, ORG_KIND_LABEL, ORG_ROLE_LABEL } from "@/lib/orgs";
 import { ROLE_LABEL } from "@/lib/labels";
+import { ORG_KIND_LABEL, ORG_ROLE_LABEL, workspaceOrgs } from "@/lib/orgs";
+import { usernameOf } from "@/lib/solid/auth";
 import { initials, projectHref, type WsData } from "./types";
 
 const KIND_TONE: Record<string, string> = {
@@ -93,7 +93,9 @@ export function People({ data }: { data: WsData }) {
                   </Card>
                 );
                 return href ? (
-                  <a key={person.webId} href={href} className="group">{Inner}</a>
+                  <a key={person.webId} href={href} className="group">
+                    {Inner}
+                  </a>
                 ) : (
                   <div key={person.webId}>{Inner}</div>
                 );

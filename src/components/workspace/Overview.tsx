@@ -5,19 +5,35 @@
 // links into that project's hub (cross-origin, silent SSO).
 
 import {
-  Avatar, AvatarFallback, AvatarGroup, Badge, Card, CardContent, Progress,
-  Tooltip, TooltipContent, TooltipTrigger,
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  Badge,
+  Card,
+  CardContent,
+  Progress,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@mind-studio/ui";
 import {
-  ArrowRight, CalendarDays, FolderKanban, ListTodo, TriangleAlert, Users,
+  ArrowRight,
+  CalendarDays,
+  FolderKanban,
+  ListTodo,
+  TriangleAlert,
+  Users,
 } from "lucide-react";
 import { ROLE_LABEL } from "@/lib/labels";
-import { initials, projectHref, type WsData } from "./types";
 import { profile } from "@/lib/profile";
-import { t, dateLocale } from "@/lib/strings";
+import { dateLocale, t } from "@/lib/strings";
+import { initials, projectHref, type WsData } from "./types";
 
 function Kpi({
-  icon: Icon, label, value, tone,
+  icon: Icon,
+  label,
+  value,
+  tone,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -52,9 +68,7 @@ export function Overview({ data }: { data: WsData }) {
   );
   const now = new Date().toISOString().slice(0, 16);
   // Cross-project upcoming meetings (tagged with their project) once loaded.
-  const nextMeetings = (data.meetings ?? [])
-    .filter((m) => m.start >= now)
-    .slice(0, 5);
+  const nextMeetings = (data.meetings ?? []).filter((m) => m.start >= now).slice(0, 5);
 
   return (
     <div className="stagger space-y-6">
@@ -130,7 +144,8 @@ export function Overview({ data }: { data: WsData }) {
                         <CalendarDays className="size-3.5" />
                         {p.nextMeeting
                           ? new Date(p.nextMeeting.start).toLocaleDateString(dateLocale, {
-                              day: "numeric", month: "short",
+                              day: "numeric",
+                              month: "short",
                             })
                           : t.noMeeting}
                       </span>
@@ -147,7 +162,8 @@ export function Overview({ data }: { data: WsData }) {
                             </Avatar>
                           </TooltipTrigger>
                           <TooltipContent>
-                            {m.name}{m.org ? ` · ${m.org}` : ""} · {ROLE_LABEL[m.role]}
+                            {m.name}
+                            {m.org ? ` · ${m.org}` : ""} · {ROLE_LABEL[m.role]}
                           </TooltipContent>
                         </Tooltip>
                       ))}
@@ -174,7 +190,10 @@ export function Overview({ data }: { data: WsData }) {
               >
                 <CalendarDays className="size-3.5 shrink-0 text-muted-foreground" />
                 <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                  {new Date(m.start).toLocaleDateString(dateLocale, { day: "numeric", month: "short" })}
+                  {new Date(m.start).toLocaleDateString(dateLocale, {
+                    day: "numeric",
+                    month: "short",
+                  })}
                 </span>
                 <span className="truncate text-foreground/90">{m.title}</span>
                 <Badge variant="secondary" className="ml-auto shrink-0 text-[10px]">

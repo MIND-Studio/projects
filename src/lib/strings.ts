@@ -315,14 +315,13 @@ const STRINGS: Record<"en" | "de", Dict> = {
     storedInPod: "Stored in your pod",
     notMember: (webId) =>
       `Signed in as ${webId} — but this identity isn't a member of the project.`,
-    noProjectYet: (webId) =>
-      `Signed in as ${webId} — but not assigned to any project yet.`,
+    noProjectYet: (webId) => `Signed in as ${webId} — but not assigned to any project yet.`,
     accessManaged: "Access is managed by the workspace owner.",
     noProjectSelected: "No project selected",
-    noProjectHint: "Pick a project from the switcher at the top to open its board, timeline and briefings.",
+    noProjectHint:
+      "Pick a project from the switcher at the top to open its board, timeline and briefings.",
     loginTagline: (appName) => `${appName} · one login for the whole project.`,
-    loginTrust:
-      "Your data stays in your own pod — no tracking, no third parties.",
+    loginTrust: "Your data stays in your own pod — no tracking, no third parties.",
     loginCompleting: "Completing sign-in…",
     cmdOpen: "Open search and commands",
     cmdSearch: "Search…",
@@ -459,8 +458,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
     openLabel: "Open",
     open: "open",
     noMeeting: "no meeting",
-    draftsToApprove: (n) =>
-      `${n} draft${n === 1 ? "" : "s"} to approve`,
+    draftsToApprove: (n) => `${n} draft${n === 1 ? "" : "s"} to approve`,
     noOpenDrafts: "No open drafts.",
     approve: "Approve",
     lastPublished: "Last published",
@@ -486,8 +484,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
     subscribeViaWebcal: "Subscribe via webcal",
     googleAndOthers: "Google Calendar & others (via URL)",
     feedUrl: "Feed URL",
-    googleHowto:
-      "In Google Calendar: Other calendars → “From URL” → paste this address.",
+    googleHowto: "In Google Calendar: Other calendars → “From URL” → paste this address.",
     meetingsTitle: "Meetings",
     upcomingHeading: "Upcoming",
     noUpcomingMeetings: "No upcoming meetings.",
@@ -508,7 +505,8 @@ const STRINGS: Record<"en" | "de", Dict> = {
     legendToday: "today",
     legendInactive: "inactive / future",
     epicInactive: "inactive",
-    epicInactiveTitle: "Not started — no dates yet; starts when its first task moves to In progress",
+    epicInactiveTitle:
+      "Not started — no dates yet; starts when its first task moves to In progress",
     zoomQuarter: "Quarter",
     zoomMonth: "Month",
     zoomWeek: "Week",
@@ -551,8 +549,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
       `${name} (${org}) immediately loses access to the project — the access rights are recompiled. The membership can be re-created at any time.`,
     remove: "Remove",
     teamAndPartner: "Team & Partners",
-    orgsAndPeople: (orgs, people) =>
-      `${orgs} organizations · ${people} people`,
+    orgsAndPeople: (orgs, people) => `${orgs} organizations · ${people} people`,
     assistantSubtitle: "Project assistant · answers questions from the project data",
     askAssistant: (assistant) => `Ask ${assistant}`,
     noMemberWithUsername: "No project member with the username",
@@ -596,14 +593,13 @@ const STRINGS: Record<"en" | "de", Dict> = {
     storedInPod: "Daten liegen in deinem Pod",
     notMember: (webId) =>
       `Angemeldet als ${webId} — aber diese Identität ist kein Mitglied des Projekts.`,
-    noProjectYet: (webId) =>
-      `Angemeldet als ${webId} — aber noch keinem Projekt zugeordnet.`,
+    noProjectYet: (webId) => `Angemeldet als ${webId} — aber noch keinem Projekt zugeordnet.`,
     accessManaged: "Zugang vergibt der Workspace-Inhaber.",
     noProjectSelected: "Kein Projekt ausgewählt",
-    noProjectHint: "Wähle oben im Umschalter ein Projekt, um Board, Timeline und Briefings zu öffnen.",
+    noProjectHint:
+      "Wähle oben im Umschalter ein Projekt, um Board, Timeline und Briefings zu öffnen.",
     loginTagline: (appName) => `${appName} · ein Login für das ganze Projekt.`,
-    loginTrust:
-      "Alle Daten bleiben in deinem Pod — kein Tracking, keine Drittanbieter.",
+    loginTrust: "Alle Daten bleiben in deinem Pod — kein Tracking, keine Drittanbieter.",
     loginCompleting: "Anmeldung wird abgeschlossen…",
     cmdOpen: "Suche und Befehle öffnen",
     cmdSearch: "Suchen…",
@@ -740,8 +736,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
     openLabel: "Offen",
     open: "offen",
     noMeeting: "kein Termin",
-    draftsToApprove: (n) =>
-      `${n} Entwurf${n === 1 ? "" : "e"} zur Freigabe`,
+    draftsToApprove: (n) => `${n} Entwurf${n === 1 ? "" : "e"} zur Freigabe`,
     noOpenDrafts: "Keine offenen Entwürfe.",
     approve: "Freigeben",
     lastPublished: "Zuletzt veröffentlicht",
@@ -767,8 +762,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
     subscribeViaWebcal: "Per webcal abonnieren",
     googleAndOthers: "Google Kalender & andere (per URL)",
     feedUrl: "Feed-URL",
-    googleHowto:
-      "In Google Kalender: Weitere Kalender → „Per URL\" → diese Adresse einfügen.",
+    googleHowto: 'In Google Kalender: Weitere Kalender → „Per URL" → diese Adresse einfügen.',
     meetingsTitle: "Termine",
     upcomingHeading: "Anstehend",
     noUpcomingMeetings: "Keine anstehenden Termine.",
@@ -789,7 +783,8 @@ const STRINGS: Record<"en" | "de", Dict> = {
     legendToday: "heute",
     legendInactive: "inaktiv / künftig",
     epicInactive: "inaktiv",
-    epicInactiveTitle: "Noch nicht gestartet — keine Daten; startet, sobald die erste Aufgabe auf In Arbeit wechselt",
+    epicInactiveTitle:
+      "Noch nicht gestartet — keine Daten; startet, sobald die erste Aufgabe auf In Arbeit wechselt",
     zoomQuarter: "Quartal",
     zoomMonth: "Monat",
     zoomWeek: "Woche",
@@ -832,8 +827,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
       `${name} (${org}) verliert sofort den Zugang zum Projekt — die Zugriffsrechte werden neu kompiliert. Die Mitgliedschaft kann jederzeit wieder angelegt werden.`,
     remove: "Entfernen",
     teamAndPartner: "Team & Partner",
-    orgsAndPeople: (orgs, people) =>
-      `${orgs} Organisationen · ${people} Personen`,
+    orgsAndPeople: (orgs, people) => `${orgs} Organisationen · ${people} Personen`,
     assistantSubtitle: "Projekt-Assistent · beantwortet Fragen aus den Projektdaten",
     askAssistant: (assistant) => `${assistant} fragen`,
     noMemberWithUsername: "Kein Projektmitglied mit dem Benutzernamen",

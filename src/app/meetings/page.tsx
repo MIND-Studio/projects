@@ -4,8 +4,6 @@
 // resource). Row click opens the detail sheet (deep link: /meetings?m=MTG-XXX,
 // also via ⌘K); .ics export per meeting.
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Button,
   Card,
@@ -18,14 +16,16 @@ import {
   Input,
   Skeleton,
 } from "@mind-studio/ui";
-import { toast } from "sonner";
 import { CalendarPlus, ChevronRight, Copy, MapPin, Rss } from "lucide-react";
-import { Shell } from "@/components/Shell";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { MeetingSheet } from "@/components/MeetingSheet";
+import { Shell } from "@/components/Shell";
 import { downloadIcs } from "@/lib/ics";
 import { loadMeetings } from "@/lib/solid/data";
-import { t, dateLocale } from "@/lib/strings";
 import type { Meeting } from "@/lib/solid/turtle";
+import { dateLocale, t } from "@/lib/strings";
 
 function Row({ m, past, onOpen }: { m: Meeting; past?: boolean; onOpen: (id: string) => void }) {
   const d = new Date(m.start);
@@ -50,9 +50,7 @@ function Row({ m, past, onOpen }: { m: Meeting; past?: boolean; onOpen: (id: str
           }`}
           aria-hidden
         >
-          <span className="font-display text-xl leading-none font-semibold">
-            {d.getDate()}
-          </span>
+          <span className="font-display text-xl leading-none font-semibold">{d.getDate()}</span>
           <span className="mt-0.5 text-[10px] tracking-wide uppercase">
             {d.toLocaleString(dateLocale, { month: "short" })}
           </span>
@@ -67,7 +65,9 @@ function Row({ m, past, onOpen }: { m: Meeting; past?: boolean; onOpen: (id: str
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {d.toLocaleString(dateLocale, {
-              weekday: "short", hour: "2-digit", minute: "2-digit",
+              weekday: "short",
+              hour: "2-digit",
+              minute: "2-digit",
             })}{" "}
             {t.oclock}
             {m.location && (
@@ -98,15 +98,15 @@ function Row({ m, past, onOpen }: { m: Meeting; past?: boolean; onOpen: (id: str
 }
 
 function SubscribeDialog({
-  open, onOpenChange,
+  open,
+  onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
 }) {
   // webcal:// is the subscribe-protocol alias for the https feed URL
   const feedPath = "/api/calendar.ics";
-  const httpUrl =
-    typeof window === "undefined" ? feedPath : `${window.location.origin}${feedPath}`;
+  const httpUrl = typeof window === "undefined" ? feedPath : `${window.location.origin}${feedPath}`;
   const webcalUrl = httpUrl.replace(/^https?:\/\//, "webcal://");
 
   const copy = async () => {
@@ -119,9 +119,7 @@ function SubscribeDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">{t.subscribeCalendar}</DialogTitle>
-          <DialogDescription>
-            {t.subscribeDesc}
-          </DialogDescription>
+          <DialogDescription>{t.subscribeDesc}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm">
           <div className="space-y-2">
@@ -139,14 +137,17 @@ function SubscribeDialog({
               {t.googleAndOthers}
             </p>
             <div className="flex gap-2">
-              <Input readOnly value={httpUrl} className="font-mono text-xs" aria-label={t.feedUrl} />
+              <Input
+                readOnly
+                value={httpUrl}
+                className="font-mono text-xs"
+                aria-label={t.feedUrl}
+              />
               <Button variant="outline" size="icon" onClick={copy} aria-label={t.copyFeedUrl}>
                 <Copy />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t.googleHowto}
-            </p>
+            <p className="text-xs text-muted-foreground">{t.googleHowto}</p>
           </div>
         </div>
       </DialogContent>
@@ -160,7 +161,9 @@ function Meetings() {
   const [meetings, setMeetings] = useState<Meeting[] | null>(null);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   useEffect(() => {
-    loadMeetings().then(setMeetings).catch(() => setMeetings([]));
+    loadMeetings()
+      .then(setMeetings)
+      .catch(() => setMeetings([]));
   }, []);
 
   const selectedId = params.get("m");
@@ -185,44 +188,44 @@ function Meetings() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-lg font-semibold tracking-tight">{t.meetingsTitle}</h1>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setSubscribeOpen(true)}
-        >
+        <Button size="sm" variant="outline" onClick={() => setSubscribeOpen(true)}>
           <Rss /> {t.subscribeCalendar}
         </Button>
       </div>
       <div className="grid gap-8 md:grid-cols-2">
-      <section>
-        <h2 className="mb-3 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-          {t.upcomingHeading}
-        </h2>
-        <div className="stagger space-y-3">
-          {upcoming.length === 0 && (
-            <Card>
-              <CardContent className="py-6 text-center text-sm text-muted-foreground">
-                {t.noUpcomingMeetings}
-              </CardContent>
-            </Card>
-          )}
-          {upcoming.map((m) => <Row key={m.id} m={m} onOpen={openMeeting} />)}
-        </div>
-      </section>
-      <section>
-        <h2 className="mb-3 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-          {t.pastHeading}
-        </h2>
-        <div className="stagger space-y-3">
-          {past.map((m) => <Row key={m.id} m={m} past onOpen={openMeeting} />)}
-        </div>
-      </section>
+        <section>
+          <h2 className="mb-3 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            {t.upcomingHeading}
+          </h2>
+          <div className="stagger space-y-3">
+            {upcoming.length === 0 && (
+              <Card>
+                <CardContent className="py-6 text-center text-sm text-muted-foreground">
+                  {t.noUpcomingMeetings}
+                </CardContent>
+              </Card>
+            )}
+            {upcoming.map((m) => (
+              <Row key={m.id} m={m} onOpen={openMeeting} />
+            ))}
+          </div>
+        </section>
+        <section>
+          <h2 className="mb-3 font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            {t.pastHeading}
+          </h2>
+          <div className="stagger space-y-3">
+            {past.map((m) => (
+              <Row key={m.id} m={m} past onOpen={openMeeting} />
+            ))}
+          </div>
+        </section>
 
-      <MeetingSheet
-        meeting={selected}
-        open={!!selected}
-        onOpenChange={(o) => !o && openMeeting(null)}
-      />
+        <MeetingSheet
+          meeting={selected}
+          open={!!selected}
+          onOpenChange={(o) => !o && openMeeting(null)}
+        />
       </div>
       <SubscribeDialog open={subscribeOpen} onOpenChange={setSubscribeOpen} />
     </div>

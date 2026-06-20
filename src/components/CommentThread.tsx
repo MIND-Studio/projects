@@ -4,18 +4,16 @@
 // Top-level comments + one reply level; writes go to the pod as the signed-in
 // user, guests see the thread read-only.
 
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { Avatar, AvatarFallback, Button, Spinner, Textarea } from "@mind-studio/ui";
-import { toast } from "sonner";
 import { CornerDownRight, MessageSquare, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { usernameOf } from "@/lib/solid/auth";
+import { addComment, type Comment, deleteComment, loadComments } from "@/lib/solid/comments";
+import { dateLocale, t } from "@/lib/strings";
 import { Markdown } from "./Markdown";
 import { useHub } from "./Shell";
-import {
-  addComment, deleteComment, loadComments, type Comment,
-} from "@/lib/solid/comments";
-import { usernameOf } from "@/lib/solid/auth";
-import { t, dateLocale } from "@/lib/strings";
 
 function initialsOf(name: string): string {
   return name
@@ -33,12 +31,18 @@ function relTime(iso: string): string {
   if (dt < 3_600_000) return t.minutesAgo(Math.floor(dt / 60_000));
   if (dt < 86_400_000) return t.hoursAgo(Math.floor(dt / 3_600_000));
   return new Date(iso).toLocaleDateString(dateLocale, {
-    day: "2-digit", month: "2-digit", year: "numeric",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
 }
 
 function Composer({
-  placeholder, busy, onSubmit, autoFocus, onCancel,
+  placeholder,
+  busy,
+  onSubmit,
+  autoFocus,
+  onCancel,
 }: {
   placeholder: string;
   busy: boolean;
@@ -85,7 +89,13 @@ function Composer({
 }
 
 function CommentItem({
-  c, replies, canComment, canDelete, busy, onReply, onDelete,
+  c,
+  replies,
+  canComment,
+  canDelete,
+  busy,
+  onReply,
+  onDelete,
 }: {
   c: Comment;
   replies: Comment[];
@@ -146,7 +156,11 @@ function CommentItem({
         <div className="ml-3.5 space-y-3 border-l border-border/70 pl-5">
           {replies.map((r) => (
             <div key={r.id} className="group flex gap-2.5">
-              <Link href={`/team/${usernameOf(r.author)}`} className="shrink-0" title={r.authorName}>
+              <Link
+                href={`/team/${usernameOf(r.author)}`}
+                className="shrink-0"
+                title={r.authorName}
+              >
                 <Avatar className="size-6">
                   <AvatarFallback className="bg-primary/15 text-[9px] font-semibold text-primary">
                     {initialsOf(r.authorName)}
@@ -205,7 +219,9 @@ export function CommentThread({ target }: { target: string }) {
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(() => {
-    loadComments().then(setAll).catch(() => setAll([]));
+    loadComments()
+      .then(setAll)
+      .catch(() => setAll([]));
   }, []);
   // refetch when the thread is pointed at another object (sheet stays mounted)
   useEffect(refresh, [refresh, target]);
@@ -230,11 +246,7 @@ export function CommentThread({ target }: { target: string }) {
       // refetch here would lose the new comment until the next mount
       setAll((prev) => [...(prev ?? []), created]);
     } catch (e) {
-      toast.error(
-        (e as { status?: number }).status === 403
-          ? t.issueReadonly
-          : t.commentFailed(e),
-      );
+      toast.error((e as { status?: number }).status === 403 ? t.issueReadonly : t.commentFailed(e));
       throw e;
     } finally {
       setBusy(false);
@@ -246,9 +258,7 @@ export function CommentThread({ target }: { target: string }) {
     try {
       await deleteComment(c);
       // local removal (incl. replies of a removed top-level comment)
-      setAll((prev) =>
-        prev ? prev.filter((x) => x.id !== c.id && x.replyTo !== c.id) : prev,
-      );
+      setAll((prev) => (prev ? prev.filter((x) => x.id !== c.id && x.replyTo !== c.id) : prev));
     } catch (e) {
       toast.error(t.commentDeleteFailed(e));
     } finally {
@@ -260,7 +270,8 @@ export function CommentThread({ target }: { target: string }) {
     <div>
       <p className="mb-3 flex items-center gap-1.5 text-xs tracking-wide text-muted-foreground uppercase">
         <MessageSquare className="size-3.5" />
-        {t.comments}{all !== null && comments.length > 0 ? ` (${comments.length})` : ""}
+        {t.comments}
+        {all !== null && comments.length > 0 ? ` (${comments.length})` : ""}
       </p>
       {all === null ? (
         <p className="text-sm text-muted-foreground">{t.loadingComments}</p>

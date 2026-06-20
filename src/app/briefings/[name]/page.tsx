@@ -3,15 +3,15 @@
 // Briefing permalink — full-page view of one published briefing
 // (/briefings/<file-name>), shareable inside the project.
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Badge, Button, Card, CardContent, Skeleton } from "@mind-studio/ui";
 import { ArrowLeft } from "lucide-react";
-import { Shell, useHub } from "@/components/Shell";
-import { Markdown } from "@/components/Markdown";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { CommentThread } from "@/components/CommentThread";
-import { loadBriefings, markBriefingRead, type Briefing } from "@/lib/solid/data";
+import { Markdown } from "@/components/Markdown";
+import { Shell, useHub } from "@/components/Shell";
+import { type Briefing, loadBriefings, markBriefingRead } from "@/lib/solid/data";
 
 function BriefingDetail() {
   const hub = useHub();

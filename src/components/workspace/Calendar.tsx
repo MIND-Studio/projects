@@ -10,10 +10,7 @@ import { projectHref, type WsData } from "./types";
 
 function Row({ m }: { m: WorkspaceMeeting }) {
   return (
-    <a
-      href={projectHref(m.projectId, `/meetings?m=${m.id}`)}
-      className="group block"
-    >
+    <a href={projectHref(m.projectId, `/meetings?m=${m.id}`)} className="group block">
       <Card className="glow-hover transition-colors group-hover:border-primary/40">
         <CardContent className="flex items-center gap-4 p-3">
           <div className="flex w-14 shrink-0 flex-col items-center rounded-lg bg-primary/10 py-1.5 text-primary">
@@ -30,7 +27,9 @@ function Row({ m }: { m: WorkspaceMeeting }) {
               <span className="inline-flex items-center gap-1">
                 <CalendarDays className="size-3" />
                 {new Date(m.start).toLocaleString("de-DE", {
-                  weekday: "short", hour: "2-digit", minute: "2-digit",
+                  weekday: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}{" "}
                 Uhr
               </span>
@@ -42,7 +41,9 @@ function Row({ m }: { m: WorkspaceMeeting }) {
               )}
             </p>
           </div>
-          <Badge variant="secondary" className="shrink-0 text-[10px]">{m.projectTitle}</Badge>
+          <Badge variant="secondary" className="shrink-0 text-[10px]">
+            {m.projectTitle}
+          </Badge>
         </CardContent>
       </Card>
     </a>
@@ -93,7 +94,9 @@ export function Calendar({ data }: { data: WsData }) {
                   <h2 className="font-display text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                     Vergangen
                   </h2>
-                  {past.slice(0, 10).map((m) => <Row key={`${m.projectId}-${m.id}`} m={m} />)}
+                  {past.slice(0, 10).map((m) => (
+                    <Row key={`${m.projectId}-${m.id}`} m={m} />
+                  ))}
                 </section>
               )}
             </>

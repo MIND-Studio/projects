@@ -6,9 +6,9 @@
 // the rest of the app stay agnostic to which world it runs in.
 
 import {
-  login,
   handleIncomingRedirect,
   type ISessionInfo,
+  login,
 } from "@inrupt/solid-client-authn-browser";
 import { browserOidcLogin } from "@mind-studio/core";
 import { profile } from "@/lib/profile";

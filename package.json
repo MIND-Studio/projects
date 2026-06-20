@@ -6,15 +6,20 @@
     "dev": "next dev -p 3160",
     "build": "next build",
     "start": "next start -p 3160",
-    "lint": "next lint",
-    "seed:demo": "tsx scripts/seed-demo.ts"
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "test": "vitest run --passWithNoTests",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@inrupt/solid-client": "^3.0.0",
     "@inrupt/solid-client-authn-browser": "^4.0.0",
     "@inrupt/solid-client-authn-node": "^3.1.0",
     "@mind-studio/core": "^0.8.0",
-    "@mind-studio/ui": "^0.3.0",
+    "@mind-studio/ui": "^0.4.0",
     "lucide-react": "^0.460.0",
     "next": "16.2.6",
     "react": "19.2.4",
@@ -24,12 +29,19 @@
     "sonner": "^2.0.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc}": "biome check --write --no-errors-on-unmatched"
   }
 }
