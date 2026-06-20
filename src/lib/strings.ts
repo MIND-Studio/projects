@@ -37,6 +37,7 @@ type Dict = {
   // login
   loginTagline: (appName: string) => string;
   loginTrust: string;
+  loginCompleting: string;
   // command palette (⌘K)
   cmdOpen: string;
   cmdSearch: string;
@@ -225,6 +226,19 @@ type Dict = {
   legendDone: string;
   legendMeeting: string;
   legendToday: string;
+  legendInactive: string;
+  epicInactive: string;
+  epicInactiveTitle: string;
+  zoomQuarter: string;
+  zoomMonth: string;
+  zoomWeek: string;
+  timelinePrev: string;
+  timelineNext: string;
+  timelineToday: string;
+  sortLabel: string;
+  sortByStart: string;
+  sortByName: string;
+  sortByProgress: string;
   dueOn: (date: string, state: string) => string;
   // team page
   roleNow: (name: string, role: string) => string;
@@ -309,6 +323,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
     loginTagline: (appName) => `${appName} · one login for the whole project.`,
     loginTrust:
       "Your data stays in your own pod — no tracking, no third parties.",
+    loginCompleting: "Completing sign-in…",
     cmdOpen: "Open search and commands",
     cmdSearch: "Search…",
     cmdTitle: "Commands",
@@ -491,6 +506,19 @@ const STRINGS: Record<"en" | "de", Dict> = {
     legendDone: "done",
     legendMeeting: "meeting",
     legendToday: "today",
+    legendInactive: "inactive / future",
+    epicInactive: "inactive",
+    epicInactiveTitle: "Not started — no dates yet; starts when its first task moves to In progress",
+    zoomQuarter: "Quarter",
+    zoomMonth: "Month",
+    zoomWeek: "Week",
+    timelinePrev: "Earlier",
+    timelineNext: "Later",
+    timelineToday: "Today",
+    sortLabel: "Sort",
+    sortByStart: "By start",
+    sortByName: "By name",
+    sortByProgress: "By progress",
     dueOn: (date, state) => `due ${date} · ${state}`,
     roleNow: (name, role) => `${name} is now ${role}`,
     inviteForbidden: "No permission — only owners manage participants.",
@@ -576,6 +604,7 @@ const STRINGS: Record<"en" | "de", Dict> = {
     loginTagline: (appName) => `${appName} · ein Login für das ganze Projekt.`,
     loginTrust:
       "Alle Daten bleiben in deinem Pod — kein Tracking, keine Drittanbieter.",
+    loginCompleting: "Anmeldung wird abgeschlossen…",
     cmdOpen: "Suche und Befehle öffnen",
     cmdSearch: "Suchen…",
     cmdTitle: "Befehle",
@@ -758,6 +787,19 @@ const STRINGS: Record<"en" | "de", Dict> = {
     legendDone: "erledigt",
     legendMeeting: "Meeting",
     legendToday: "heute",
+    legendInactive: "inaktiv / künftig",
+    epicInactive: "inaktiv",
+    epicInactiveTitle: "Noch nicht gestartet — keine Daten; startet, sobald die erste Aufgabe auf In Arbeit wechselt",
+    zoomQuarter: "Quartal",
+    zoomMonth: "Monat",
+    zoomWeek: "Woche",
+    timelinePrev: "Früher",
+    timelineNext: "Später",
+    timelineToday: "Heute",
+    sortLabel: "Sortierung",
+    sortByStart: "Nach Start",
+    sortByName: "Nach Name",
+    sortByProgress: "Nach Fortschritt",
     dueOn: (date, state) => `fällig ${date} · ${state}`,
     roleNow: (name, role) => `${name} ist jetzt ${role}`,
     inviteForbidden: "Keine Berechtigung — nur Owner verwalten Teilnehmer.",

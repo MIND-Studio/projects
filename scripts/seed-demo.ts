@@ -96,6 +96,7 @@ const STATE_TTL = `@prefix : <#> .
     wf:tracker :this ;
     mc:number 1 ;
     dc:title "Welcome to your project board" ;
+    mc:epic <epics.ttl#discovery> ;
     a :Todo , :General ;
     dct:created "2026-06-01"^^xsd:date ;
     wf:description """Drag cards between columns to change their state. Everything is stored in your own pod.""" .
@@ -104,6 +105,7 @@ const STATE_TTL = `@prefix : <#> .
     wf:tracker :this ;
     mc:number 2 ;
     dc:title "Plan the first milestone" ;
+    mc:epic <epics.ttl#discovery> ;
     a :InProgress , :General ;
     dct:created "2026-06-02"^^xsd:date ;
     mindp:due "2026-07-01"^^xsd:date ;
@@ -113,9 +115,56 @@ const STATE_TTL = `@prefix : <#> .
     wf:tracker :this ;
     mc:number 3 ;
     dc:title "Invite a collaborator" ;
+    mc:epic <epics.ttl#discovery> ;
     a :Done , :General ;
     dct:created "2026-06-03"^^xsd:date ;
     wf:description """Share the project container via WAC to work together.""" .
+
+<#TASK-004>
+    wf:tracker :this ;
+    mc:number 4 ;
+    dc:title "Prepare release notes" ;
+    mc:epic <epics.ttl#launch> ;
+    a :Todo , :General ;
+    dct:created "2026-06-10"^^xsd:date ;
+    wf:description """Draft the notes for the first launch.""" .
+
+<#TASK-005>
+    wf:tracker :this ;
+    mc:number 5 ;
+    dc:title "Security audit sign-off" ;
+    mc:epic <epics.ttl#audit> ;
+    a :Done , :General ;
+    dct:created "2026-06-05"^^xsd:date ;
+    wf:description """External review of the data-sovereignty model.""" .
+`;
+
+const EPICS_TTL = `@prefix dct: <http://purl.org/dc/terms/> .
+@prefix mc: <https://mind.dev/ns/tracker#> .
+@prefix mindp: <https://mind.dev/ns/projects#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<#discovery> a mc:Epic ;
+    mc:number 1 ;
+    dct:title "Discovery" ;
+    mc:status "active" ;
+    mindp:startDate "2026-02-01"^^xsd:date ;
+    mindp:endDate "2026-05-15"^^xsd:date ;
+    dct:description """Research, scoping and a rough plan.""" .
+
+<#launch> a mc:Epic ;
+    mc:number 2 ;
+    dct:title "Launch" ;
+    mc:status "planned" ;
+    dct:description """Ship the first release — not started yet.""" .
+
+<#audit> a mc:Epic ;
+    mc:number 3 ;
+    dct:title "Audit" ;
+    mc:status "active" ;
+    mindp:startDate "2026-09-01"^^xsd:date ;
+    mindp:endDate "2026-11-30"^^xsd:date ;
+    dct:description """Independent security and compliance review.""" .
 `;
 
 const TRACKER_TTL = `@prefix dct: <http://purl.org/dc/terms/> .
@@ -153,6 +202,7 @@ async function main() {
 
   await put(session, `${PROJECT_ROOT}project.ttl`, PROJECT_TTL, "text/turtle");
   await put(session, `${PROJECT_ROOT}tracker/tracker.ttl`, TRACKER_TTL, "text/turtle");
+  await put(session, `${PROJECT_ROOT}tracker/epics.ttl`, EPICS_TTL, "text/turtle");
   await put(session, `${PROJECT_ROOT}tracker/state.ttl`, STATE_TTL, "text/turtle");
   await put(session, `${PROJECT_ROOT}meetings/kickoff.ttl`, MEETING_TTL, "text/turtle");
   await put(session, `${PROJECT_ROOT}briefings/2026-06-briefing.md`, BRIEFING_MD, "text/markdown");

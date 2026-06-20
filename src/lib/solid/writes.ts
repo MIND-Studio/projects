@@ -11,6 +11,7 @@ import { authedFetch } from "./auth";
 import { paths } from "./config";
 import {
   rewriteIssue, rewriteIssueState, appendIssue, emptyState,
+  parseState, parseEpics, setEpicStartDate,
   type IssueState, type IssuePatch,
 } from "./turtle";
 
@@ -34,6 +35,26 @@ async function putState(url: string, ttl: string): Promise<void> {
 export async function podMoveIssue(issueId: string, state: IssueState): Promise<void> {
   const { url, ttl } = await loadState();
   await putState(url, rewriteIssueState(ttl, issueId, state));
+  // First task of a milestone entering "in progress" stamps the milestone's
+  // start date, so the timeline shows it activating the moment work begins.
+  if (state === "in-progress") await maybeStartEpic(ttl, issueId);
+}
+
+/** If the moved issue belongs to a milestone that has no start date yet, set it
+    to today in epics.ttl. Best-effort: silently skips if there's no epics doc or
+    the milestone is already started/scheduled. */
+async function maybeStartEpic(stateTtl: string, issueId: string): Promise<void> {
+  const epicId = parseState(stateTtl).find((i) => i.id === issueId)?.epic;
+  if (!epicId) return;
+  const eUrl = paths.trackerEpics;
+  const r = await authedFetch()(eUrl, { headers: { accept: "text/turtle" } });
+  if (!r.ok) return;
+  const ttl = await r.text();
+  const epic = parseEpics(ttl).find((e) => e.id === epicId);
+  if (!epic || epic.startDate) return; // already started/scheduled
+  const today = new Date().toISOString().slice(0, 10);
+  const next = setEpicStartDate(ttl, epicId, today);
+  if (next !== ttl) await putState(eUrl, next);
 }
 
 export async function podUpdateIssue(issueId: string, patch: IssuePatch): Promise<void> {

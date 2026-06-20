@@ -22,8 +22,12 @@ import { profile } from "@/lib/profile";
 import { t } from "@/lib/strings";
 
 // Mirrors Shell's nav (same icons) — what the hub gives you once you're in.
+// The Chat card only appears when the assistant is enabled (it's the only nav
+// surface that's profile-gated), so the default OSS build doesn't advertise it.
 const FEATURES: { icon: LucideIcon; label: string; blurb: string }[] = [
-  { icon: MessageSquare, label: "Chat", blurb: t.landingFeatChatBlurb(profile.assistantName) },
+  ...(profile.assistant
+    ? [{ icon: MessageSquare, label: "Chat", blurb: t.landingFeatChatBlurb(profile.assistantName) }]
+    : []),
   { icon: SquareKanban, label: "Board", blurb: t.landingFeatBoardBlurb },
   { icon: GanttChartSquare, label: "Timeline", blurb: t.landingFeatTimelineBlurb },
   { icon: CalendarDays, label: t.cmdMeetings, blurb: t.landingFeatMeetingsBlurb },
@@ -31,8 +35,13 @@ const FEATURES: { icon: LucideIcon; label: string; blurb: string }[] = [
   { icon: Users, label: t.wsTeam, blurb: t.landingFeatTeamBlurb },
 ];
 
-// Trust signals, mirrored from emai.dev's hero badges.
-const SIGNALS = [t.landingSignalOss, t.landingSignalSovereign, t.landingSignalNoTracking];
+// Trust signals, mirrored from emai.dev's hero badges. The "open-source AI" badge
+// only shows when the assistant is actually on.
+const SIGNALS = [
+  ...(profile.assistant ? [t.landingSignalOss] : []),
+  t.landingSignalSovereign,
+  t.landingSignalNoTracking,
+];
 
 export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
   // Host-resolved public branding (Landing renders only client-side, after the
@@ -112,15 +121,17 @@ export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
               ))}
             </div>
 
-            {/* partners */}
-            <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              {brand.partners.map((p, i) => (
-                <span key={p} className="flex items-center gap-2">
-                  {i > 0 && <span className="text-primary/50">×</span>}
-                  <span className="font-medium text-foreground/80">{p}</span>
-                </span>
-              ))}
-            </div>
+            {/* partners — only when the deployment actually lists any */}
+            {brand.partners.length > 0 && (
+              <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                {brand.partners.map((p, i) => (
+                  <span key={p} className="flex items-center gap-2">
+                    {i > 0 && <span className="text-primary/50">×</span>}
+                    <span className="font-medium text-foreground/80">{p}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="lg:pl-4">
@@ -128,29 +139,31 @@ export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
           </div>
         </section>
 
-        {/* what is the assistant */}
-        <section className="border-t border-border/60 py-14">
-          <Eyebrow index="01" label={t.landingOverview} />
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">
-            {t.landingMeet(profile.assistantName)}
-          </h2>
-          <div className="mt-4 grid gap-4 text-muted-foreground sm:grid-cols-2 sm:gap-10">
-            <p>
-              {t.landingMeetP1(profile.assistantName)}
-            </p>
-            <p className="flex gap-3">
-              <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
-              <span>
-                <span className="text-foreground/90">{t.landingAccountWord(profile.appName)}</span>{" "}
-                {t.landingAccountP2}
-              </span>
-            </p>
-          </div>
-        </section>
+        {/* what is the assistant — only when the assistant is enabled */}
+        {profile.assistant && (
+          <section className="border-t border-border/60 py-14">
+            <Eyebrow index="01" label={t.landingOverview} />
+            <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">
+              {t.landingMeet(profile.assistantName)}
+            </h2>
+            <div className="mt-4 grid gap-4 text-muted-foreground sm:grid-cols-2 sm:gap-10">
+              <p>
+                {t.landingMeetP1(profile.assistantName)}
+              </p>
+              <p className="flex gap-3">
+                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
+                <span>
+                  <span className="text-foreground/90">{t.landingAccountWord(profile.appName)}</span>{" "}
+                  {t.landingAccountP2}
+                </span>
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* features */}
         <section className="border-t border-border/60 py-14">
-          <Eyebrow index="02" label={t.landingFunctions} />
+          <Eyebrow index={profile.assistant ? "02" : "01"} label={t.landingFunctions} />
           <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">
             {t.landingAllInOne}
           </h2>
@@ -173,23 +186,25 @@ export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
           </div>
         </section>
 
-        {/* partners */}
-        <section className="border-t border-border/60 py-14">
-          <Eyebrow index="03" label={t.landingPartners} />
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">
-            {t.landingBuiltTogether}
-          </h2>
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-            {brand.partners.map((p) => (
-              <span
-                key={p}
-                className="rounded-lg border border-border/60 px-4 py-2 text-sm font-medium text-foreground/90"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-        </section>
+        {/* partners — only when the deployment actually lists any */}
+        {brand.partners.length > 0 && (
+          <section className="border-t border-border/60 py-14">
+            <Eyebrow index={profile.assistant ? "03" : "02"} label={t.landingPartners} />
+            <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">
+              {t.landingBuiltTogether}
+            </h2>
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+              {brand.partners.map((p) => (
+                <span
+                  key={p}
+                  className="rounded-lg border border-border/60 px-4 py-2 text-sm font-medium text-foreground/90"
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         <footer className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border/60 py-5 text-xs text-muted-foreground">
           <span className="font-mono uppercase tracking-[0.15em]">{brand.title}</span>
