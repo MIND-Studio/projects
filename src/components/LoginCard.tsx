@@ -6,9 +6,9 @@
 // posts them to the issuer and jumps straight to /login/callback.
 
 import { MindLoginCard } from "@mind-studio/core";
-import { session, startLogin } from "@/lib/solid/auth";
-import { APP_NAME, ISSUER, LOGIN_FIELDS, currentBranding } from "@/lib/solid/config";
 import { profile } from "@/lib/profile";
+import { session, startLogin } from "@/lib/solid/auth";
+import { APP_NAME, currentBranding, ISSUER, LOGIN_FIELDS } from "@/lib/solid/config";
 import { t } from "@/lib/strings";
 
 // German overrides for the core login card. English is the card's built-in
@@ -62,9 +62,7 @@ export function LoginPanel({ onLoggedIn }: { onLoggedIn?: () => void }) {
       </div>
       {/* Company-hub access note — irrelevant when each user signs into their own pod. */}
       {profile.workspace === "fixed" && (
-        <p className="max-w-sm text-center text-xs text-muted-foreground">
-          {t.accessManaged}
-        </p>
+        <p className="max-w-sm text-center text-xs text-muted-foreground">{t.accessManaged}</p>
       )}
     </div>
   );

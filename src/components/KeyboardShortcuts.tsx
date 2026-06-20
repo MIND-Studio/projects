@@ -5,8 +5,6 @@
 // Keys stay inert while typing or while a dialog/sheet is open (Escape
 // closes those first); ⌘K and / live in CommandMenu.
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +13,8 @@ import {
   DialogTitle,
   Kbd,
 } from "@mind-studio/ui";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { t } from "@/lib/strings";
 
 export function isTyping(e: KeyboardEvent): boolean {
@@ -96,9 +96,7 @@ export function KeyboardShortcuts({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="font-display">{t.keyboardShortcuts}</DialogTitle>
-          <DialogDescription>
-            {t.shortcutsHint}
-          </DialogDescription>
+          <DialogDescription>{t.shortcutsHint}</DialogDescription>
         </DialogHeader>
         <dl className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 text-sm">
           {rows.map(([key, label], i) => (

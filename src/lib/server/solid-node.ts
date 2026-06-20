@@ -2,7 +2,11 @@
 // Mirror of workspace/lib/solid.mjs, trimmed to what the API routes need.
 
 import {
-  generateKeyPairSync, sign as nodeSign, randomBytes, createHash, type KeyObject,
+  createHash,
+  generateKeyPairSync,
+  type KeyObject,
+  sign as nodeSign,
+  randomBytes,
 } from "node:crypto";
 
 const b64url = (b: Buffer | string) => Buffer.from(b).toString("base64url");
@@ -34,12 +38,15 @@ export class WorkerClient {
     const header = { typ: "dpop+jwt", alg: "ES256", jwk: this.jwk };
     const payload: Record<string, unknown> = {
       jti: randomBytes(16).toString("hex"),
-      htm, htu, iat: Math.floor(Date.now() / 1000),
+      htm,
+      htu,
+      iat: Math.floor(Date.now() / 1000),
     };
     if (ath) payload.ath = b64url(sha256(ath));
     const si = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(payload))}`;
     const sig = nodeSign("sha256", Buffer.from(si), {
-      key: this.privateKey, dsaEncoding: "ieee-p1363",
+      key: this.privateKey,
+      dsaEncoding: "ieee-p1363",
     });
     return `${si}.${b64url(sig)}`;
   }
@@ -73,7 +80,11 @@ export class WorkerClient {
     ).webid;
   }
 
-  async fetch(method: string, url: string, init: { headers?: Record<string, string>; body?: string } = {}) {
+  async fetch(
+    method: string,
+    url: string,
+    init: { headers?: Record<string, string>; body?: string } = {},
+  ) {
     await this.ensureToken();
     return fetch(url, {
       method,

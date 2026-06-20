@@ -3,22 +3,17 @@
 // F1 — chat with Kai. The browser writes user messages into the user's own
 // chat folder (WAC = identity), the /api/chat route lets Kai answer.
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button, Symbol, cn } from "@mind-studio/ui";
+import { Button, cn, Symbol } from "@mind-studio/ui";
 import { ArrowUp } from "lucide-react";
-import { Shell, useHub } from "@/components/Shell";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Markdown } from "@/components/Markdown";
-import { loadChat, sendChat, type ChatMsg } from "@/lib/solid/data";
+import { Shell, useHub } from "@/components/Shell";
 import { profile } from "@/lib/profile";
+import { type ChatMsg, loadChat, sendChat } from "@/lib/solid/data";
 import { t } from "@/lib/strings";
 
-const SUGGESTIONS = [
-  t.chatSuggest1,
-  t.chatSuggest2,
-  t.chatSuggest3,
-  t.chatSuggest4,
-];
+const SUGGESTIONS = [t.chatSuggest1, t.chatSuggest2, t.chatSuggest3, t.chatSuggest4];
 
 function KaiBubble({ text, pending }: { text?: string; pending?: boolean }) {
   return (
@@ -28,9 +23,14 @@ function KaiBubble({ text, pending }: { text?: string; pending?: boolean }) {
         alt={profile.assistantName}
       />
       <div className="max-w-[80%] rounded-2xl rounded-tl-sm border bg-card px-4 py-2.5">
-        <p className="mb-1 text-xs font-semibold text-primary">{profile.assistantName} · {t.assistantAiLabel}</p>
+        <p className="mb-1 text-xs font-semibold text-primary">
+          {profile.assistantName} · {t.assistantAiLabel}
+        </p>
         {pending ? (
-          <span className="inline-flex gap-1 py-1" aria-label={t.assistantThinking(profile.assistantName)}>
+          <span
+            className="inline-flex gap-1 py-1"
+            aria-label={t.assistantThinking(profile.assistantName)}
+          >
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
@@ -56,7 +56,9 @@ function Chat() {
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadChat(hub.username).then(setMessages).catch(() => setMessages([]));
+    loadChat(hub.username)
+      .then(setMessages)
+      .catch(() => setMessages([]));
   }, [hub.username]);
 
   useEffect(() => {
@@ -74,11 +76,7 @@ function Chat() {
       setMessages((m) => [...(m ?? []), { author: "kai", text: reply, at: Date.now() }]);
     } catch (e) {
       const msg = (e as Error).message;
-      setError(
-        msg.includes("unavailable")
-          ? t.assistantUnavailable(profile.assistantName)
-          : msg,
-      );
+      setError(msg.includes("unavailable") ? t.assistantUnavailable(profile.assistantName) : msg);
     } finally {
       setBusy(false);
     }
@@ -93,7 +91,9 @@ function Chat() {
         {messages?.length === 0 && (
           <div className="animate-rise mt-12 flex flex-col items-center text-center">
             <Symbol className="mb-4 size-12 rounded-xl" />
-            <p className="font-display text-lg font-semibold">{t.askAssistantTitle(profile.assistantName)}</p>
+            <p className="font-display text-lg font-semibold">
+              {t.askAssistantTitle(profile.assistantName)}
+            </p>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
               {t.chatEmptyHint(profile.assistantName)}
             </p>
@@ -135,7 +135,11 @@ function Chat() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={busy ? t.assistantReplying(profile.assistantName) : t.messageToAssistant(profile.assistantName)}
+          placeholder={
+            busy
+              ? t.assistantReplying(profile.assistantName)
+              : t.messageToAssistant(profile.assistantName)
+          }
           disabled={busy}
           className={cn(
             "h-11 flex-1 rounded-xl border bg-card px-4 text-sm outline-none transition-colors",

@@ -18,7 +18,7 @@ export function CountUp({ value, duration = 900 }: { value: number; duration?: n
     let raf = 0;
     const tick = (t: number) => {
       const p = Math.min(1, (t - start) / duration);
-      setN(Math.round(value * (1 - Math.pow(1 - p, 3))));
+      setN(Math.round(value * (1 - (1 - p) ** 3)));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

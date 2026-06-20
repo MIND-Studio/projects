@@ -10,7 +10,7 @@
 // binding — acceptable for this internal, same-origin hub; tighten to full DPoP
 // proof verification if the threat model grows.
 
-import { createPublicKey, verify as nodeVerify, type JsonWebKey } from "node:crypto";
+import { createPublicKey, type JsonWebKey, verify as nodeVerify } from "node:crypto";
 import { ISSUER } from "../solid/config";
 
 const err = (status: number, msg: string) => Object.assign(new Error(msg), { status });

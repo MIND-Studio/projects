@@ -1,4 +1,4 @@
-import { parseTheme, toDataUrl, type Theme } from "@mind-studio/ui";
+import { parseTheme, type Theme, toDataUrl } from "@mind-studio/ui";
 
 /*
  * EmAI brand theme — Caltrans Orange (#FF6700) on neutral dark (#141414).

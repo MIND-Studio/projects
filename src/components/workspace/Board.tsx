@@ -4,9 +4,9 @@
 // tagged with its project. Read-only here (editing lives in the project hub):
 // clicking an issue deep-links into that project's board (cross-origin SSO).
 
-import { useState } from "react";
 import { Badge, Button, Card, CardContent, Skeleton } from "@mind-studio/ui";
 import { TriangleAlert } from "lucide-react";
+import { useState } from "react";
 import { STATE_LABEL } from "@/lib/labels";
 import type { IssueState } from "@/lib/solid/turtle";
 import { projectHref, type WsData } from "./types";
@@ -22,7 +22,9 @@ export function Board({ data }: { data: WsData }) {
   if (!board) {
     return (
       <div className="grid gap-3 md:grid-cols-3">
-        {LANES.map((s) => <Skeleton key={s} className="h-64 w-full" />)}
+        {LANES.map((s) => (
+          <Skeleton key={s} className="h-64 w-full" />
+        ))}
       </div>
     );
   }

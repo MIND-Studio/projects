@@ -7,11 +7,15 @@
 // authorized structurally; non-owners simply get 403s.
 
 import { authedFetch, usernameOf } from "./auth";
-import { ISSUER, projectRoot, paths } from "./config";
-import { parseProject, type Membership, type ProjectMeta, type Role } from "./turtle";
+import { ISSUER, paths, projectRoot } from "./config";
+import { type Membership, type ProjectMeta, parseProject, type Role } from "./turtle";
 
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
 async function getText(url: string): Promise<string> {
   const r = await authedFetch()(url, { headers: { accept: "text/turtle" } });
@@ -37,9 +41,16 @@ export function webIdFor(username: string): string {
 // ------------------------------------------------------- project.ttl rewrite
 
 /** Append `ws:membership <#m-user>` to the <#it> block + the membership block. */
-function addMembershipBlock(ttl: string, m: {
-  username: string; webId: string; name: string; org: string; role: Role;
-}): string {
+function addMembershipBlock(
+  ttl: string,
+  m: {
+    username: string;
+    webId: string;
+    name: string;
+    org: string;
+    role: Role;
+  },
+): string {
   const id = `m-${slug(m.username)}`;
   if (ttl.includes(`<#${id}>`)) throw new Error(`${m.username} ist bereits Mitglied`);
   // the <#it> block ends with the last membership ref + " ." — extend the list
@@ -69,10 +80,7 @@ function removeMembershipBlock(ttl: string, webId: string): string {
   let out = ttl;
   if (new RegExp(`ws:membership <#${id}>\\s*\\.`).test(out)) {
     // it's the last entry — the previous line's `;` must become `.`
-    out = out.replace(
-      new RegExp(`\\s*;\\s*\\n\\s*ws:membership <#${id}>(\\s*\\.)`),
-      "$1",
-    );
+    out = out.replace(new RegExp(`\\s*;\\s*\\n\\s*ws:membership <#${id}>(\\s*\\.)`), "$1");
   } else {
     out = out.replace(new RegExp(`\\n\\s*ws:membership <#${id}>\\s*;`), "");
   }
@@ -86,9 +94,7 @@ function removeMembershipBlock(ttl: string, webId: string): string {
 
 function changeRoleBlock(ttl: string, webId: string, role: Role): string {
   const blocks = ttl.split(/\n(?=<#)/);
-  const idx = blocks.findIndex(
-    (b) => /a ws:Membership\b/.test(b) && b.includes(`<${webId}>`),
-  );
+  const idx = blocks.findIndex((b) => /a ws:Membership\b/.test(b) && b.includes(`<${webId}>`));
   if (idx === -1) throw new Error("Mitgliedschaft nicht gefunden");
   blocks[idx] = blocks[idx].replace(/ws:role ws:\w+/, `ws:role ws:${role}`);
   return blocks.join("\n");
@@ -225,7 +231,11 @@ export async function changeParticipantRole(webId: string, role: Role): Promise<
 }
 
 /** Guard rails the UI enforces before calling the API. */
-export function removalBlocker(project: ProjectMeta, m: Membership, selfWebId: string): string | null {
+export function removalBlocker(
+  project: ProjectMeta,
+  m: Membership,
+  selfWebId: string,
+): string | null {
   if (m.kind === "Worker") return "Kai ist der Projekt-Assistent und kann nicht entfernt werden.";
   if (m.agent === selfWebId) return "Du kannst dich nicht selbst entfernen.";
   const owners = project.members.filter((x) => x.role === "Owner");

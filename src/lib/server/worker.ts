@@ -13,8 +13,8 @@
 // process. Acceptable for the trusted multi-tenant hub; a high-sensitivity
 // project should run its own dedicated deployment (legacy single-secret path).
 
-import { WorkerClient } from "./solid-node";
 import { ISSUER } from "../solid/config";
+import { WorkerClient } from "./solid-node";
 
 const cache = new Map<string, WorkerClient>();
 
@@ -35,10 +35,9 @@ function credsFor(projectId: string): { id: string; secret: string } {
       // map falls through to the single-secret legacy path below.)
       const c = map[projectId];
       if (c?.id && c?.secret) return { id: c.id, secret: c.secret };
-      throw Object.assign(
-        new Error(`No Kai worker in KAI_WORKERS for project "${projectId}"`),
-        { status: 404 },
-      );
+      throw Object.assign(new Error(`No Kai worker in KAI_WORKERS for project "${projectId}"`), {
+        status: 404,
+      });
     }
   }
   const id = process.env.KAI_CLIENT_ID;

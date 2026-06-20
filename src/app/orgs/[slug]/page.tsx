@@ -4,9 +4,6 @@
 // memberships; the page aggregates their people, the APs they lead, and the
 // workload of their members, all live from the tracker.
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   Avatar,
   AvatarFallback,
@@ -20,11 +17,14 @@ import {
   Skeleton,
 } from "@mind-studio/ui";
 import { ArrowLeft, Building2, ChevronRight, GanttChartSquare } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Shell, useHub } from "@/components/Shell";
-import { loadTracker } from "@/lib/solid/data";
-import { usernameOf } from "@/lib/solid/auth";
-import { orgsOf, orgMatches, ORG_ROLE_LABEL } from "@/lib/orgs";
 import { ROLE_LABEL, STATE_LABEL } from "@/lib/labels";
+import { ORG_ROLE_LABEL, orgMatches, orgsOf } from "@/lib/orgs";
+import { usernameOf } from "@/lib/solid/auth";
+import { loadTracker } from "@/lib/solid/data";
 import type { IssueState, Tracker } from "@/lib/solid/turtle";
 
 const STATE_DOT: Record<IssueState, string> = {
@@ -53,7 +53,9 @@ function OrgProfile() {
   const [tracker, setTracker] = useState<Tracker | null>(null);
 
   useEffect(() => {
-    loadTracker().then(setTracker).catch(() => setTracker(null));
+    loadTracker()
+      .then(setTracker)
+      .catch(() => setTracker(null));
   }, []);
 
   const org = orgsOf(hub.project.members).find((o) => o.slug === slug) ?? null;
@@ -110,7 +112,10 @@ function OrgProfile() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             {org.members.length} {org.members.length === 1 ? "Person" : "Personen"} im Projekt
             {orgIssues && orgIssues.length > 0 && (
-              <> · {doneCount}/{orgIssues.length} Aufgaben erledigt</>
+              <>
+                {" "}
+                · {doneCount}/{orgIssues.length} Aufgaben erledigt
+              </>
             )}
           </p>
         </div>
@@ -146,10 +151,7 @@ function OrgProfile() {
                     {username}
                   </span>
                 </span>
-                <Badge
-                  variant={m.role === "Guest" ? "outline" : "secondary"}
-                  className="shrink-0"
-                >
+                <Badge variant={m.role === "Guest" ? "outline" : "secondary"} className="shrink-0">
                   {ROLE_LABEL[m.role]}
                 </Badge>
               </Link>
@@ -215,9 +217,7 @@ function OrgProfile() {
               <Skeleton className="h-5 w-4/5" />
             </div>
           ) : openIssues.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Keine offenen Aufgaben bei {org.name}.
-            </p>
+            <p className="text-sm text-muted-foreground">Keine offenen Aufgaben bei {org.name}.</p>
           ) : (
             <ul className="stagger space-y-0.5">
               {openIssues.map((i) => {

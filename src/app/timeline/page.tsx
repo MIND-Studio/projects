@@ -6,9 +6,6 @@
 // beam. Header compares elapsed runtime against actual completion.
 // Clicking any item opens its detail sheet IN PLACE (?issue= / ?ap= / ?m=).
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -18,15 +15,18 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@mind-studio/ui";
-import { Shell, useHub } from "@/components/Shell";
-import { IssueSheet } from "@/components/IssueSheet";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { EpicSheet } from "@/components/EpicSheet";
+import { IssueSheet } from "@/components/IssueSheet";
 import { MeetingSheet } from "@/components/MeetingSheet";
-import { loadTracker, loadMeetings } from "@/lib/solid/data";
-import { usernameOf } from "@/lib/solid/auth";
+import { Shell, useHub } from "@/components/Shell";
 import { STATE_LABEL } from "@/lib/labels";
-import { t, dateLocale } from "@/lib/strings";
-import type { Tracker, Meeting, Issue } from "@/lib/solid/turtle";
+import { usernameOf } from "@/lib/solid/auth";
+import { loadMeetings, loadTracker } from "@/lib/solid/data";
+import type { Issue, Meeting, Tracker } from "@/lib/solid/turtle";
+import { dateLocale, t } from "@/lib/strings";
 
 const DAY = 86400000;
 const LABEL_W = 176; // frozen lane-label column width in px (Tailwind w-44 = 11rem)
@@ -36,9 +36,7 @@ const LABEL_W = 176; // frozen lane-label column width in px (Tailwind w-44 = 11
 const SLOT_TOP = ["50%", "22%", "78%"];
 
 function slotted(tasks: Issue[], x: (iso: string) => number) {
-  const due = tasks
-    .filter((i) => i.due)
-    .sort((a, b) => a.due!.localeCompare(b.due!));
+  const due = tasks.filter((i) => i.due).sort((a, b) => a.due!.localeCompare(b.due!));
   let lastX = -10;
   let slot = 0;
   return due.map((i) => {
@@ -61,11 +59,15 @@ function Timeline() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(() => {
-    loadTracker().then(setTracker).catch(() => setTracker(null));
+    loadTracker()
+      .then(setTracker)
+      .catch(() => setTracker(null));
   }, []);
   useEffect(() => {
     refresh();
-    loadMeetings().then(setMeetings).catch(() => setMeetings(null));
+    loadMeetings()
+      .then(setMeetings)
+      .catch(() => setMeetings(null));
   }, [refresh]);
 
   // re-center on "today" whenever the zoom changes or data first loads, so the
@@ -120,7 +122,10 @@ function Timeline() {
       if (d.getUTCMonth() % 3 !== 0) continue;
       const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
       if (first.getTime() < t0) continue;
-      ticks.push({ label: `Q${Math.floor(d.getUTCMonth() / 3) + 1}`, pos: ((first.getTime() - t0) / span) * 100 });
+      ticks.push({
+        label: `Q${Math.floor(d.getUTCMonth() / 3) + 1}`,
+        pos: ((first.getTime() - t0) / span) * 100,
+      });
     }
   } else if (view === "week") {
     const d = new Date(t0);
@@ -135,7 +140,10 @@ function Timeline() {
     for (let d = new Date(t0); d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + 1)) {
       const first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
       if (first.getTime() < t0) continue;
-      ticks.push({ label: first.toLocaleString(dateLocale, { month: "short", timeZone: "UTC" }), pos: ((first.getTime() - t0) / span) * 100 });
+      ticks.push({
+        label: first.toLocaleString(dateLocale, { month: "short", timeZone: "UTC" }),
+        pos: ((first.getTime() - t0) / span) * 100,
+      });
     }
   }
 
@@ -149,7 +157,10 @@ function Timeline() {
     const el = scrollRef.current;
     if (!el) return;
     const trackPx = el.scrollWidth - LABEL_W;
-    el.scrollTo({ left: Math.max(0, LABEL_W + (todayX / 100) * trackPx - el.clientWidth / 2), behavior: "smooth" });
+    el.scrollTo({
+      left: Math.max(0, LABEL_W + (todayX / 100) * trackPx - el.clientWidth / 2),
+      behavior: "smooth",
+    });
   };
 
   const ms = (d: string) => new Date(`${d}T12:00:00Z`).getTime();
@@ -212,12 +223,11 @@ function Timeline() {
             <span className="text-muted-foreground">{t.doneLabel}</span>
             <span className="font-mono text-primary">{Math.round(donePct)}%</span>
           </div>
-          <div className="relative pt-4" title={`${t.doneLabel} ${Math.round(donePct)}% · ${t.runtime} ${Math.round(elapsedPct)}%`}>
-            <Progress
-              value={donePct}
-              className="progress-glow h-2"
-              aria-label={t.doneLabel}
-            />
+          <div
+            className="relative pt-4"
+            title={`${t.doneLabel} ${Math.round(donePct)}% · ${t.runtime} ${Math.round(elapsedPct)}%`}
+          >
+            <Progress value={donePct} className="progress-glow h-2" aria-label={t.doneLabel} />
             {/* schedule line — today's expected progress from elapsed runtime */}
             <div
               className="absolute bottom-0 top-3 w-px bg-foreground/70"
@@ -236,19 +246,25 @@ function Timeline() {
           {/* zoom granularity + horizontal navigation */}
           <div className="flex items-center justify-between gap-2">
             <div className="inline-flex rounded-md border border-border/60 p-0.5 text-xs">
-              {([["quarter", t.zoomQuarter], ["month", t.zoomMonth], ["week", t.zoomWeek]] as const).map(
-                ([v, label]) => (
-                  <button
-                    key={v}
-                    onClick={() => setView(v)}
-                    className={`rounded px-2.5 py-1 font-medium transition-colors ${
-                      view === v ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ),
-              )}
+              {(
+                [
+                  ["quarter", t.zoomQuarter],
+                  ["month", t.zoomMonth],
+                  ["week", t.zoomWeek],
+                ] as const
+              ).map(([v, label]) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`rounded px-2.5 py-1 font-medium transition-colors ${
+                    view === v
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="sr-only sm:not-sr-only">{t.sortLabel}</span>
@@ -317,163 +333,181 @@ function Timeline() {
               <div className="relative">
                 {/* past shading, gridlines + today beam spanning all lanes */}
                 <div className="pointer-events-none absolute inset-0 ml-44">
-              {todayInRange && (
-                <div
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-transparent to-primary/[0.05]"
-                  style={{ width: `${todayX}%` }}
-                />
-              )}
-              {ticks.map((m) => (
-                <div
-                  key={m.pos}
-                  className="absolute inset-y-0 w-px bg-border/60"
-                  style={{ left: `${m.pos}%` }}
-                />
-              ))}
-              {todayInRange && (
-                <div
-                  className="emai-glow-pulse absolute inset-y-0 w-px bg-primary"
-                  style={{ left: `${todayX}%` }}
-                  title={t.todayTitle(today)}
-                />
-              )}
-            </div>
+                  {todayInRange && (
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-transparent to-primary/[0.05]"
+                      style={{ width: `${todayX}%` }}
+                    />
+                  )}
+                  {ticks.map((m) => (
+                    <div
+                      key={m.pos}
+                      className="absolute inset-y-0 w-px bg-border/60"
+                      style={{ left: `${m.pos}%` }}
+                    />
+                  ))}
+                  {todayInRange && (
+                    <div
+                      className="emai-glow-pulse absolute inset-y-0 w-px bg-primary"
+                      style={{ left: `${todayX}%` }}
+                      title={t.todayTitle(today)}
+                    />
+                  )}
+                </div>
 
-            {sortedLanes.map(({ epic, tasks, from, to, started, ghostFrom, ghostTo }, laneIdx) => {
-              const laneDone = tasks.filter((i) => i.state === "done").length;
-              const lanePct = tasks.length ? (laneDone / tasks.length) * 100 : 0;
-              return (
-                <div
-                  key={epic.id}
-                  className="animate-rise flex rounded-md border-b border-border/60 py-3 transition-colors hover:bg-foreground/[0.025]"
-                  style={{ animationDelay: `${laneIdx * 70}ms` }}
-                >
-                  <button
-                    onClick={() => replaceParam("ap", epic.id)}
-                    className="group sticky left-0 z-20 flex w-44 shrink-0 cursor-pointer flex-col justify-center bg-card pr-3 text-left"
-                    title={t.openTitle(epic.id)}
-                  >
-                    <p className="flex items-baseline gap-2 text-sm font-medium transition-colors group-hover:text-primary">
-                      {epic.id}
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        {laneDone}/{tasks.length}
-                      </span>
-                      {!started && (
-                        <span className="rounded-full bg-foreground/10 px-1.5 py-px font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
-                          {t.epicInactive}
-                        </span>
-                      )}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground" title={epic.title}>
-                      {epic.title.replace(/^AP\d+:\s*/, "")}
-                    </p>
-                  </button>
-                  <div className="relative h-9 flex-1">
-                    {started && from !== null && to !== null && to > from ? (
+                {sortedLanes.map(
+                  ({ epic, tasks, from, to, started, ghostFrom, ghostTo }, laneIdx) => {
+                    const laneDone = tasks.filter((i) => i.state === "done").length;
+                    const lanePct = tasks.length ? (laneDone / tasks.length) * 100 : 0;
+                    return (
                       <div
-                        className="emai-grow absolute top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-primary/15"
-                        style={{
-                          left: `${((from - t0) / (t1 - t0)) * 100}%`,
-                          width: `${((to - from) / (t1 - t0)) * 100}%`,
-                          animationDelay: `${laneIdx * 70}ms`,
-                        }}
+                        key={epic.id}
+                        className="animate-rise flex rounded-md border-b border-border/60 py-3 transition-colors hover:bg-foreground/[0.025]"
+                        style={{ animationDelay: `${laneIdx * 70}ms` }}
                       >
-                        {/* completed share of this AP, filled from the left */}
-                        <div
-                          className="h-full rounded-full bg-primary/50"
-                          style={{ width: `${lanePct}%` }}
-                        />
+                        <button
+                          onClick={() => replaceParam("ap", epic.id)}
+                          className="group sticky left-0 z-20 flex w-44 shrink-0 cursor-pointer flex-col justify-center bg-card pr-3 text-left"
+                          title={t.openTitle(epic.id)}
+                        >
+                          <p className="flex items-baseline gap-2 text-sm font-medium transition-colors group-hover:text-primary">
+                            {epic.id}
+                            <span className="font-mono text-[10px] text-muted-foreground">
+                              {laneDone}/{tasks.length}
+                            </span>
+                            {!started && (
+                              <span className="rounded-full bg-foreground/10 px-1.5 py-px font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+                                {t.epicInactive}
+                              </span>
+                            )}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground" title={epic.title}>
+                            {epic.title.replace(/^AP\d+:\s*/, "")}
+                          </p>
+                        </button>
+                        <div className="relative h-9 flex-1">
+                          {started && from !== null && to !== null && to > from ? (
+                            <div
+                              className="emai-grow absolute top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-primary/15"
+                              style={{
+                                left: `${((from - t0) / (t1 - t0)) * 100}%`,
+                                width: `${((to - from) / (t1 - t0)) * 100}%`,
+                                animationDelay: `${laneIdx * 70}ms`,
+                              }}
+                            >
+                              {/* completed share of this AP, filled from the left */}
+                              <div
+                                className="h-full rounded-full bg-primary/50"
+                                style={{ width: `${lanePct}%` }}
+                              />
+                            </div>
+                          ) : !started ? (
+                            // inactive / future milestone — a muted dashed ghost in the
+                            // future, clearly not yet scheduled (item 6)
+                            <div
+                              className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full border border-dashed border-border/70 bg-foreground/[0.03]"
+                              style={{
+                                left: `${((ghostFrom - t0) / (t1 - t0)) * 100}%`,
+                                width: `${Math.max(2, ((ghostTo - ghostFrom) / (t1 - t0)) * 100)}%`,
+                              }}
+                              title={t.epicInactiveTitle}
+                            />
+                          ) : null}
+                          {slotted(tasks, x).map(({ issue: i, xi, slot }) => (
+                            <Tooltip key={i.id}>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => replaceParam("issue", i.id)}
+                                  className={`emai-pop absolute block h-3 w-3 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full ring-2 ring-background transition-transform hover:scale-150 ${dotClass(i)}`}
+                                  style={{
+                                    left: `${xi}%`,
+                                    top: SLOT_TOP[slot],
+                                    animationDelay: `${0.2 + xi * 0.006}s`,
+                                  }}
+                                  aria-label={`${i.id}: ${i.title}`}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <span className="font-mono">{i.handle}</span> {i.title}
+                                <br />
+                                {t.dueOn(i.due ?? "", STATE_LABEL[i.state])}
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+                        </div>
                       </div>
-                    ) : !started ? (
-                      // inactive / future milestone — a muted dashed ghost in the
-                      // future, clearly not yet scheduled (item 6)
-                      <div
-                        className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full border border-dashed border-border/70 bg-foreground/[0.03]"
-                        style={{
-                          left: `${((ghostFrom - t0) / (t1 - t0)) * 100}%`,
-                          width: `${Math.max(2, ((ghostTo - ghostFrom) / (t1 - t0)) * 100)}%`,
-                        }}
-                        title={t.epicInactiveTitle}
-                      />
-                    ) : null}
-                    {slotted(tasks, x).map(({ issue: i, xi, slot }) => (
-                      <Tooltip key={i.id}>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => replaceParam("issue", i.id)}
-                            className={`emai-pop absolute block h-3 w-3 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full ring-2 ring-background transition-transform hover:scale-150 ${dotClass(i)}`}
-                            style={{
-                              left: `${xi}%`,
-                              top: SLOT_TOP[slot],
-                              animationDelay: `${0.2 + xi * 0.006}s`,
-                            }}
-                            aria-label={`${i.id}: ${i.title}`}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <span className="font-mono">{i.handle}</span> {i.title}
-                          <br />
-                          {t.dueOn(i.due ?? "", STATE_LABEL[i.state])}
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
+                    );
+                  },
+                )}
+
+                {/* meetings lane */}
+                <div
+                  className="animate-rise flex rounded-md py-3 transition-colors hover:bg-foreground/[0.025]"
+                  style={{ animationDelay: `${lanes.length * 70}ms` }}
+                >
+                  <div className="sticky left-0 z-20 flex w-44 shrink-0 flex-col justify-center bg-card pr-3">
+                    <p className="text-sm font-medium">{t.cmdMeetings}</p>
+                  </div>
+                  <div className="relative h-9 flex-1">
+                    {meetings
+                      .filter((m) => m.start.slice(0, 10) >= hub.project.startDate)
+                      .map((m) => {
+                        const past = m.start.slice(0, 10) < today;
+                        return (
+                          <Tooltip key={m.id}>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => replaceParam("m", m.id)}
+                                className={`emai-pop absolute top-1/2 block h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 cursor-pointer bg-warn transition-transform hover:scale-150 ${
+                                  past ? "opacity-50" : "shadow-[0_0_8px_rgba(45,212,191,0.5)]"
+                                }`}
+                                style={{
+                                  left: `${x(m.start)}%`,
+                                  animationDelay: `${0.2 + x(m.start) * 0.006}s`,
+                                }}
+                                aria-label={m.title}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              {m.title}
+                              <br />
+                              {new Date(m.start).toLocaleString(dateLocale, {
+                                day: "2-digit",
+                                month: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              {t.oclock}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
                   </div>
                 </div>
-              );
-            })}
-
-            {/* meetings lane */}
-            <div
-              className="animate-rise flex rounded-md py-3 transition-colors hover:bg-foreground/[0.025]"
-              style={{ animationDelay: `${lanes.length * 70}ms` }}
-            >
-              <div className="sticky left-0 z-20 flex w-44 shrink-0 flex-col justify-center bg-card pr-3">
-                <p className="text-sm font-medium">{t.cmdMeetings}</p>
-              </div>
-              <div className="relative h-9 flex-1">
-                {meetings
-                  .filter((m) => m.start.slice(0, 10) >= hub.project.startDate)
-                  .map((m) => {
-                    const past = m.start.slice(0, 10) < today;
-                    return (
-                      <Tooltip key={m.id}>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => replaceParam("m", m.id)}
-                            className={`emai-pop absolute top-1/2 block h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 cursor-pointer bg-warn transition-transform hover:scale-150 ${
-                              past ? "opacity-50" : "shadow-[0_0_8px_rgba(45,212,191,0.5)]"
-                            }`}
-                            style={{
-                              left: `${x(m.start)}%`,
-                              animationDelay: `${0.2 + x(m.start) * 0.006}s`,
-                            }}
-                            aria-label={m.title}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          {m.title}
-                          <br />
-                          {new Date(m.start).toLocaleString(dateLocale, {
-                            day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
-                          })}{" "}
-                          {t.oclock}
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-              </div>
-            </div>
               </div>
             </div>
           </div>
 
           <div className="ml-44 flex flex-wrap gap-5 pt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-primary" /> {t.legendDue}</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-error" /> {t.legendOverdue}</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-ok" /> {t.legendDone}</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 bg-warn" /> {t.legendMeeting}</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block h-3 w-px bg-primary" /> {t.legendToday}</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full border border-dashed border-border/70 bg-foreground/[0.03]" /> {t.legendInactive}</span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-primary" /> {t.legendDue}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-error" /> {t.legendOverdue}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-ok" /> {t.legendDone}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rotate-45 bg-warn" /> {t.legendMeeting}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-px bg-primary" /> {t.legendToday}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-4 rounded-full border border-dashed border-border/70 bg-foreground/[0.03]" />{" "}
+              {t.legendInactive}
+            </span>
           </div>
         </CardContent>
       </Card>

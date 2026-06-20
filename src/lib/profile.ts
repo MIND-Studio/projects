@@ -70,8 +70,7 @@ export const profile: Profile = {
     process.env.NEXT_PUBLIC_SOLID_ISSUER ??
     process.env.NEXT_PUBLIC_POD_BASE_URL ??
     "https://pods.mindpods.org/",
-  workspace:
-    process.env.NEXT_PUBLIC_WORKSPACE_MODE === "fixed" ? "fixed" : "identity",
+  workspace: process.env.NEXT_PUBLIC_WORKSPACE_MODE === "fixed" ? "fixed" : "identity",
   fixedWorkspace: process.env.NEXT_PUBLIC_WORKSPACE ?? "",
   project:
     process.env.NEXT_PUBLIC_PROJECT_MODE === "subdomain"
@@ -89,7 +88,5 @@ export const profile: Profile = {
   brand: process.env.NEXT_PUBLIC_BRAND === "emai" ? "emai" : "mind",
   locale: process.env.NEXT_PUBLIC_LOCALE === "de" ? "de" : "en",
   loginFields:
-    process.env.NEXT_PUBLIC_LOGIN_FIELDS === "username"
-      ? "username"
-      : "username-password",
+    process.env.NEXT_PUBLIC_LOGIN_FIELDS === "username" ? "username" : "username-password",
 };

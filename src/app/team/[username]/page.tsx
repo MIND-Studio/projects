@@ -3,9 +3,6 @@
 // Person profile — /team/<username>. Identity from project.ttl, workload
 // derived live from the tracker, organised meetings from /meetings/.
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   Avatar,
   AvatarFallback,
@@ -18,15 +15,23 @@ import {
   Skeleton,
 } from "@mind-studio/ui";
 import {
-  ArrowLeft, Building2, CalendarDays, CircleCheck, CircleDot, TriangleAlert,
+  ArrowLeft,
+  Building2,
+  CalendarDays,
+  CircleCheck,
+  CircleDot,
+  TriangleAlert,
 } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Shell, useHub } from "@/components/Shell";
-import { loadTracker, loadMeetings } from "@/lib/solid/data";
-import { usernameOf } from "@/lib/solid/auth";
-import { orgSlug } from "@/lib/orgs";
 import { ROLE_LABEL, STATE_LABEL } from "@/lib/labels";
-import { t, dateLocale } from "@/lib/strings";
+import { orgSlug } from "@/lib/orgs";
+import { usernameOf } from "@/lib/solid/auth";
+import { loadMeetings, loadTracker } from "@/lib/solid/data";
 import type { Issue, IssueState, Meeting, Role, Tracker } from "@/lib/solid/turtle";
+import { dateLocale, t } from "@/lib/strings";
 
 const STATE_DOT: Record<IssueState, string> = {
   backlog: "bg-muted-foreground",
@@ -56,7 +61,10 @@ function initialsOf(name: string): string {
 }
 
 function MiniStat({
-  icon: Icon, label, value, tone,
+  icon: Icon,
+  label,
+  value,
+  tone,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -128,8 +136,12 @@ function PersonProfile() {
   const [meetings, setMeetings] = useState<Meeting[] | null>(null);
 
   useEffect(() => {
-    loadTracker().then(setTracker).catch(() => setTracker(null));
-    loadMeetings().then(setMeetings).catch(() => setMeetings(null));
+    loadTracker()
+      .then(setTracker)
+      .catch(() => setTracker(null));
+    loadMeetings()
+      .then(setMeetings)
+      .catch(() => setMeetings(null));
   }, []);
 
   const member = hub.project.members.find(
@@ -146,8 +158,7 @@ function PersonProfile() {
         </Button>
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            {t.noMemberWithUsername}{" "}
-            <span className="font-mono">{username}</span>.
+            {t.noMemberWithUsername} <span className="font-mono">{username}</span>.
           </CardContent>
         </Card>
       </div>
@@ -235,9 +246,7 @@ function PersonProfile() {
               <Skeleton className="h-5 w-4/5" />
             </div>
           ) : sorted.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t.noTasksAssigned}
-            </p>
+            <p className="text-sm text-muted-foreground">{t.noTasksAssigned}</p>
           ) : (
             <ul className="stagger space-y-0.5">
               {sorted.map((i) => (
@@ -267,7 +276,9 @@ function PersonProfile() {
                     <span className="truncate text-foreground/90">{m.title}</span>
                     <span className="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
                       {new Date(m.start).toLocaleDateString(dateLocale, {
-                        day: "2-digit", month: "2-digit", year: "numeric",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
                       })}
                     </span>
                   </Link>

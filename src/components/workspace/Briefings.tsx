@@ -4,12 +4,12 @@
 // drafts awaiting owner approval, company-wide. Publishing here uses the same
 // owner action as the project hub (copy draft → briefings/, delete draft).
 
-import { useState } from "react";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Skeleton } from "@mind-studio/ui";
 import { Check, FileText, Inbox } from "lucide-react";
-import { publishBriefing, type Briefing } from "@/lib/solid/data";
-import { projectHref, type WsData } from "./types";
+import { useState } from "react";
+import { type Briefing, publishBriefing } from "@/lib/solid/data";
 import { t } from "@/lib/strings";
+import { projectHref, type WsData } from "./types";
 
 function title(b: Briefing): string {
   return b.text.match(/^#\s*(.+)$/m)?.[1] ?? b.name;
@@ -57,9 +57,7 @@ export function Briefings({ data }: { data: WsData }) {
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">{t.briefings}</h1>
         {briefings && (
           <p className="mt-2 text-sm text-muted-foreground">
-            {pendingTotal > 0
-              ? t.draftsToApprove(pendingTotal)
-              : t.noOpenDrafts}
+            {pendingTotal > 0 ? t.draftsToApprove(pendingTotal) : t.noOpenDrafts}
           </p>
         )}
       </section>

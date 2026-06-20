@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import { headers } from "next/headers";
-import { Space_Grotesk, Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
-import { resolveProjectId, brandingFor, isRouterHost, HUB_BRANDING } from "@/lib/solid/config";
 import { profile } from "@/lib/profile";
+import { brandingFor, HUB_BRANDING, isRouterHost, resolveProjectId } from "@/lib/solid/config";
 import "./globals.css";
 
 const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display-var" });
@@ -22,9 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang={profile.locale}

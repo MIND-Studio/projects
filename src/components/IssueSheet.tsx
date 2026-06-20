@@ -4,8 +4,6 @@
 // editing for members/owners. Opened from the board (card click or
 // /board?issue=TASK-XXX deep link / ⌘K).
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   Badge,
   Button,
@@ -23,15 +21,17 @@ import {
   Spinner,
   Textarea,
 } from "@mind-studio/ui";
-import { toast } from "sonner";
 import { CalendarClock, Pencil, Trash2 } from "lucide-react";
-import { Markdown } from "./Markdown";
-import { CommentThread } from "./CommentThread";
-import { updateIssue } from "@/lib/solid/data";
-import { STATES, type Epic, type Issue, type IssueState } from "@/lib/solid/turtle";
-import { STATE_LABEL, PRIORITY_LABEL } from "@/lib/labels";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { PRIORITY_LABEL, STATE_LABEL } from "@/lib/labels";
 import { usernameOf } from "@/lib/solid/auth";
+import { updateIssue } from "@/lib/solid/data";
+import { type Epic, type Issue, type IssueState, STATES } from "@/lib/solid/turtle";
 import { t } from "@/lib/strings";
+import { CommentThread } from "./CommentThread";
+import { Markdown } from "./Markdown";
 
 const STATE_DOT: Record<IssueState, string> = {
   backlog: "bg-muted-foreground",
@@ -88,7 +88,7 @@ export function IssueSheet({
 
   const epic = epics.find((e) => e.id === issue.epic) ?? null;
   const assigneeName = issue.assignee
-    ? members.find((m) => m.webId === issue.assignee)?.name ?? usernameOf(issue.assignee)
+    ? (members.find((m) => m.webId === issue.assignee)?.name ?? usernameOf(issue.assignee))
     : issue.ownerName;
   const today = new Date().toISOString().slice(0, 10);
   const overdue = issue.due && issue.state !== "done" && issue.due < today;
@@ -122,9 +122,7 @@ export function IssueSheet({
       onSaved();
     } catch (e) {
       toast.error(
-        (e as { status?: number }).status === 403
-          ? t.issueReadonly
-          : t.issueSaveFailed(e),
+        (e as { status?: number }).status === 403 ? t.issueReadonly : t.issueSaveFailed(e),
       );
     } finally {
       setBusy(false);
@@ -172,9 +170,7 @@ export function IssueSheet({
               aria-label={t.titleLabel}
             />
           ) : (
-            <SheetTitle className="font-display text-lg leading-snug">
-              {issue.title}
-            </SheetTitle>
+            <SheetTitle className="font-display text-lg leading-snug">{issue.title}</SheetTitle>
           )}
           <SheetDescription className="sr-only">{t.detailsOf(issue.id)}</SheetDescription>
         </SheetHeader>
@@ -263,7 +259,7 @@ export function IssueSheet({
                   {assigneeName}
                 </Link>
               ) : (
-                assigneeName ?? <span className="text-muted-foreground">—</span>
+                (assigneeName ?? <span className="text-muted-foreground">—</span>)
               )}
             </Meta>
             <Meta label={t.dueDate}>
@@ -298,15 +294,11 @@ export function IssueSheet({
                   className="font-mono text-xs leading-relaxed"
                   aria-label={t.description}
                 />
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  {t.markdownSupported}
-                </p>
+                <p className="mt-1.5 text-xs text-muted-foreground">{t.markdownSupported}</p>
               </>
             ) : issue.description ? (
               // strip a leading H1 — the sheet header already shows the title
-              <Markdown className="text-sm">
-                {issue.description.replace(/^#\s*.+\n+/, "")}
-              </Markdown>
+              <Markdown className="text-sm">{issue.description.replace(/^#\s*.+\n+/, "")}</Markdown>
             ) : (
               <p className="text-sm text-muted-foreground">{t.noDescription}</p>
             )}
@@ -329,11 +321,7 @@ export function IssueSheet({
           <SheetFooter className="mt-auto flex-row justify-between gap-2 border-t">
             {editing ? (
               <>
-                <Button
-                  variant="ghost"
-                  onClick={() => setEditing(false)}
-                  disabled={busy}
-                >
+                <Button variant="ghost" onClick={() => setEditing(false)} disabled={busy}>
                   {t.cancel}
                 </Button>
                 <Button onClick={save} disabled={busy}>

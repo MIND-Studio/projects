@@ -3,8 +3,6 @@
 // Übersicht — what a guest opens first: status, progress, next meeting,
 // open work, work packages. Everything links into its detail view.
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   Avatar,
   AvatarFallback,
@@ -28,13 +26,15 @@ import {
   ListTodo,
   TriangleAlert,
 } from "lucide-react";
-import { Shell, useHub } from "@/components/Shell";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CountUp } from "@/components/CountUp";
-import { usernameOf } from "@/lib/solid/auth";
-import { loadTracker, loadMeetings, loadBriefings, type Briefing } from "@/lib/solid/data";
-import type { Tracker, Meeting } from "@/lib/solid/turtle";
+import { Shell, useHub } from "@/components/Shell";
 import { ROLE_LABEL, STATE_LABEL } from "@/lib/labels";
-import { t, dateLocale } from "@/lib/strings";
+import { usernameOf } from "@/lib/solid/auth";
+import { type Briefing, loadBriefings, loadMeetings, loadTracker } from "@/lib/solid/data";
+import type { Meeting, Tracker } from "@/lib/solid/turtle";
+import { dateLocale, t } from "@/lib/strings";
 
 function initialsOf(name: string): string {
   return name
@@ -47,7 +47,11 @@ function initialsOf(name: string): string {
 }
 
 function Stat({
-  icon: Icon, label, value, tone, href,
+  icon: Icon,
+  label,
+  value,
+  tone,
+  href,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -94,9 +98,15 @@ function Overview() {
   const [briefing, setBriefing] = useState<Briefing | null>(null);
 
   useEffect(() => {
-    loadTracker().then(setTracker).catch(() => setTracker(null));
-    loadMeetings().then(setMeetings).catch(() => setMeetings(null));
-    loadBriefings().then((b) => setBriefing(b[0] ?? null)).catch(() => setBriefing(null));
+    loadTracker()
+      .then(setTracker)
+      .catch(() => setTracker(null));
+    loadMeetings()
+      .then(setMeetings)
+      .catch(() => setMeetings(null));
+    loadBriefings()
+      .then((b) => setBriefing(b[0] ?? null))
+      .catch(() => setBriefing(null));
   }, []);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -104,17 +114,13 @@ function Overview() {
   const open = active?.filter((i) => ["todo", "in-progress", "review"].includes(i.state));
   const inProgress = active?.filter((i) => i.state === "in-progress");
   const done = active?.filter((i) => i.state === "done");
-  const overdue = active?.filter(
-    (i) => i.due && i.state !== "done" && i.due < today,
-  );
+  const overdue = active?.filter((i) => i.due && i.state !== "done" && i.due < today);
   const progress = active && active.length > 0 ? ((done?.length ?? 0) / active.length) * 100 : 0;
   const now = new Date().toISOString();
   const next = meetings?.filter((m) => m.start >= now.slice(0, 16))[0] ?? null;
   const daysLeft = Math.max(
     0,
-    Math.ceil(
-      (new Date(`${hub.project.endDate}T00:00:00`).getTime() - Date.now()) / 86400000,
-    ),
+    Math.ceil((new Date(`${hub.project.endDate}T00:00:00`).getTime() - Date.now()) / 86400000),
   );
   const humans = hub.project.members.filter((m) => m.kind !== "Worker");
 
@@ -159,7 +165,10 @@ function Overview() {
             {humans.map((m) => (
               <Tooltip key={m.agent}>
                 <TooltipTrigger asChild>
-                  <Link href={`/team/${usernameOf(m.agent)}`} aria-label={t.profileOf(m.name ?? "?")}>
+                  <Link
+                    href={`/team/${usernameOf(m.agent)}`}
+                    aria-label={t.profileOf(m.name ?? "?")}
+                  >
                     <Avatar className="size-7 border-2 border-background transition-transform hover:z-10 hover:scale-110">
                       <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">
                         {initialsOf(m.name ?? "?")}
@@ -217,10 +226,7 @@ function Overview() {
                           {doneCount}/{tasks.length}
                         </span>
                       </div>
-                      <p
-                        className="truncate text-xs text-foreground/90"
-                        title={epic.title}
-                      >
+                      <p className="truncate text-xs text-foreground/90" title={epic.title}>
                         {epic.title.replace(/^AP\d+:\s*/, "")}
                       </p>
                       <Progress value={pct} className="h-1" aria-label={t.progressOf(epic.id)} />
@@ -290,16 +296,16 @@ function Overview() {
               </div>
             ) : next ? (
               <>
-                <Link
-                  href={`/meetings?m=${next.id}`}
-                  className="font-medium hover:text-primary"
-                >
+                <Link href={`/meetings?m=${next.id}`} className="font-medium hover:text-primary">
                   {next.title}
                 </Link>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {new Date(next.start).toLocaleString(dateLocale, {
-                    weekday: "long", day: "numeric", month: "long",
-                    hour: "2-digit", minute: "2-digit",
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}{" "}
                   {t.oclock}
                 </p>

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  createContext, useCallback, useContext, useEffect, useState, type ReactNode,
-} from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { writeLastIdentity } from "@mind-studio/core";
 import {
   Avatar,
   AvatarFallback,
@@ -19,7 +15,6 @@ import {
   Spinner,
   Symbol,
 } from "@mind-studio/ui";
-import { writeLastIdentity } from "@mind-studio/core";
 import {
   CalendarDays,
   ChevronsUpDown,
@@ -32,20 +27,34 @@ import {
   SquareKanban,
   Users,
 } from "lucide-react";
-import { ensureSession, logout, usernameOf, attemptSilentLogin } from "@/lib/solid/auth";
-import { solid } from "@/lib/solid/client";
-import { loadProject, roleOf, loadMemberIndex } from "@/lib/solid/data";
-import { ISSUER, isRouterHost, projectHost, setIdentityWorkspace, setIdentityProject } from "@/lib/solid/config";
-import { profile } from "@/lib/profile";
-import type { ProjectMeta, Role, ProjectRef } from "@/lib/solid/turtle";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { ROLE_LABEL } from "@/lib/labels";
+import { profile } from "@/lib/profile";
+import { attemptSilentLogin, ensureSession, logout, usernameOf } from "@/lib/solid/auth";
+import {
+  brokeredProject,
+  isBrokered,
+  signalReady,
+  subscribeBrokeredIdentity,
+} from "@/lib/solid/broker";
+import { solid } from "@/lib/solid/client";
+import {
+  ISSUER,
+  isRouterHost,
+  projectHost,
+  setIdentityProject,
+  setIdentityWorkspace,
+} from "@/lib/solid/config";
+import { loadMemberIndex, loadProject, roleOf } from "@/lib/solid/data";
+import type { ProjectMeta, ProjectRef, Role } from "@/lib/solid/turtle";
 import { t } from "@/lib/strings";
-import { isBrokered, brokeredProject, subscribeBrokeredIdentity, signalReady } from "@/lib/solid/broker";
-import { LoginCard } from "./LoginCard";
-import { Landing } from "./Landing";
-import { RouterShell } from "./RouterShell";
 import { CommandMenu } from "./CommandMenu";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
+import { Landing } from "./Landing";
+import { LoginCard } from "./LoginCard";
+import { RouterShell } from "./RouterShell";
 import { StandaloneOnly } from "./StandaloneOnly";
 
 export type Hub = {
@@ -145,7 +154,9 @@ export function Shell({ children }: { children: ReactNode }) {
         issuer: ISSUER,
       });
       // The user's other projects → the header "Projekt ▾" switcher (best-effort).
-      void loadMemberIndex(usernameOf(info.webId)).then(setMyProjects).catch(() => {});
+      void loadMemberIndex(usernameOf(info.webId))
+        .then(setMyProjects)
+        .catch(() => {});
       setState({
         phase: "ready",
         hub: {
@@ -246,145 +257,159 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <HubContext.Provider value={hub}>
       <div className="emai-backdrop fixed inset-0 -z-10" aria-hidden />
-      <div className="emai-aurora pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]" aria-hidden />
+      <div
+        className="emai-aurora pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]"
+        aria-hidden
+      />
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6">
         <StandaloneOnly>
-        <header className="sticky top-0 z-40 -mx-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:-mx-6 sm:px-6">
-          <div className="flex items-center justify-between gap-3 py-3">
-            <div className="flex items-center gap-2">
-              <Link href="/" className="group flex items-center gap-3">
-                <Symbol className="h-8 w-8 rounded-lg transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105" />
-                <span className="font-display text-lg font-semibold tracking-tight">
-                  {profile.appName}
-                </span>
-              </Link>
-              {myProjects.length > 1 && (
+          <header className="sticky top-0 z-40 -mx-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:-mx-6 sm:px-6">
+            <div className="flex items-center justify-between gap-3 py-3">
+              <div className="flex items-center gap-2">
+                <Link href="/" className="group flex items-center gap-3">
+                  <Symbol className="h-8 w-8 rounded-lg transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105" />
+                  <span className="font-display text-lg font-semibold tracking-tight">
+                    {profile.appName}
+                  </span>
+                </Link>
+                {myProjects.length > 1 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="hidden items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
+                        aria-label={t.switchProject}
+                      >
+                        {hub.project.title}
+                        <ChevronsUpDown className="size-3.5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuLabel>{t.switchProject}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {myProjects.map((p) => {
+                        const active = p.projectId === hub.project.id;
+                        const host = p.host || projectHost(p.projectId);
+                        return (
+                          <DropdownMenuItem key={p.projectId} asChild disabled={active}>
+                            <a
+                              href={
+                                active ? undefined : `${window.location.protocol}//${host}/?sso=1`
+                              }
+                            >
+                              {p.title}
+                              {active && (
+                                <span className="ml-auto text-xs text-muted-foreground">
+                                  {t.current}
+                                </span>
+                              )}
+                            </a>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <a
+                          href={`${window.location.protocol}//${window.location.host.replace(/^[^.]+\./, "")}/`}
+                        >
+                          {t.allProjects}
+                        </a>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CommandMenu canEdit={canEdit} members={hub.project.members} />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className="hidden items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
-                      aria-label={t.switchProject}
+                      className="flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 transition-colors hover:bg-accent"
+                      aria-label={t.account}
                     >
-                      {hub.project.title}
-                      <ChevronsUpDown className="size-3.5" />
+                      <Avatar className="size-7">
+                        <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                          {initialsOf(hub.displayName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden text-sm text-foreground sm:inline">
+                        {hub.displayName}
+                      </span>
+                      <Badge
+                        variant={ROLE_BADGE_VARIANT[hub.role]}
+                        className="hidden md:inline-flex"
+                      >
+                        {ROLE_LABEL[hub.role]}
+                      </Badge>
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuLabel>{t.switchProject}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {myProjects.map((p) => {
-                      const active = p.projectId === hub.project.id;
-                      const host = p.host || projectHost(p.projectId);
-                      return (
-                        <DropdownMenuItem key={p.projectId} asChild disabled={active}>
-                          <a href={active ? undefined : `${window.location.protocol}//${host}/?sso=1`}>
-                            {p.title}
-                            {active && (
-                              <span className="ml-auto text-xs text-muted-foreground">{t.current}</span>
-                            )}
-                          </a>
-                        </DropdownMenuItem>
-                      );
-                    })}
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel className="space-y-0.5">
+                      <div>{hub.displayName}</div>
+                      <div className="truncate font-mono text-xs font-normal text-muted-foreground">
+                        {hub.webId}
+                      </div>
+                    </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <a href={`${window.location.protocol}//${window.location.host.replace(/^[^.]+\./, "")}/`}>
-                        {t.allProjects}
-                      </a>
+                      <Link href={`/team/${hub.username}`}>
+                        <CircleUser /> {t.myProfile}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled>{ROLE_LABEL[hub.role]}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => logout()}>
+                      <LogOut /> {t.signOut}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
+              </div>
             </div>
-            <div className="flex items-center gap-2.5">
-              <CommandMenu canEdit={canEdit} members={hub.project.members} />
-              <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 transition-colors hover:bg-accent"
-                  aria-label={t.account}
-                >
-                  <Avatar className="size-7">
-                    <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
-                      {initialsOf(hub.displayName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden text-sm text-foreground sm:inline">
-                    {hub.displayName}
-                  </span>
-                  <Badge variant={ROLE_BADGE_VARIANT[hub.role]} className="hidden md:inline-flex">
-                    {ROLE_LABEL[hub.role]}
-                  </Badge>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel className="space-y-0.5">
-                  <div>{hub.displayName}</div>
-                  <div className="truncate font-mono text-xs font-normal text-muted-foreground">
-                    {hub.webId}
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={`/team/${hub.username}`}>
-                    <CircleUser /> {t.myProfile}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled>{ROLE_LABEL[hub.role]}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => logout()}>
-                  <LogOut /> {t.signOut}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <nav className="group/nav -mb-px flex gap-1 overflow-x-auto">
-            {TABS.map((t, i) => {
-              const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
-              const Icon = t.icon;
-              return (
-                <Link
-                  key={t.href}
-                  href={t.href}
-                  className={`flex items-center gap-1.5 border-b-2 px-3 pb-2.5 pt-1 text-sm whitespace-nowrap transition-colors ${
-                    active
-                      ? "border-primary font-medium text-primary [text-shadow:0_0_14px_color-mix(in_oklab,var(--primary)_45%,transparent)]"
-                      : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="size-4" />
-                  {t.label}
-                  <kbd
-                    className="hidden rounded border border-border/60 px-1 font-mono text-[10px] leading-4 text-muted-foreground/0 transition-colors group-hover/nav:text-muted-foreground lg:inline"
-                    aria-hidden
+            <nav className="group/nav -mb-px flex gap-1 overflow-x-auto">
+              {TABS.map((t, i) => {
+                const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);
+                const Icon = t.icon;
+                return (
+                  <Link
+                    key={t.href}
+                    href={t.href}
+                    className={`flex items-center gap-1.5 border-b-2 px-3 pb-2.5 pt-1 text-sm whitespace-nowrap transition-colors ${
+                      active
+                        ? "border-primary font-medium text-primary [text-shadow:0_0_14px_color-mix(in_oklab,var(--primary)_45%,transparent)]"
+                        : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                    }`}
                   >
-                    {i + 1}
-                  </kbd>
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="emai-headerline absolute inset-x-0 bottom-0 h-px" aria-hidden />
-        </header>
+                    <Icon className="size-4" />
+                    {t.label}
+                    <kbd
+                      className="hidden rounded border border-border/60 px-1 font-mono text-[10px] leading-4 text-muted-foreground/0 transition-colors group-hover/nav:text-muted-foreground lg:inline"
+                      aria-hidden
+                    >
+                      {i + 1}
+                    </kbd>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="emai-headerline absolute inset-x-0 bottom-0 h-px" aria-hidden />
+          </header>
         </StandaloneOnly>
         <main className="flex-1 py-6">{children}</main>
         <StandaloneOnly>
-        <footer className="flex items-center justify-between border-t border-border/60 py-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-2">
-            {hub.project.title}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent("emai:shortcuts"))}
-              className="rounded border border-border/60 px-1.5 font-mono transition-colors hover:border-primary/40 hover:text-foreground"
-              aria-label={t.showShortcuts}
-              title={t.keyboardShortcuts}
-            >
-              ?
-            </button>
-          </span>
-          <span>
-            {t.storedInPod} · {hub.project.startDate} – {hub.project.endDate}
-          </span>
-        </footer>
+          <footer className="flex items-center justify-between border-t border-border/60 py-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-2">
+              {hub.project.title}
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("emai:shortcuts"))}
+                className="rounded border border-border/60 px-1.5 font-mono transition-colors hover:border-primary/40 hover:text-foreground"
+                aria-label={t.showShortcuts}
+                title={t.keyboardShortcuts}
+              >
+                ?
+              </button>
+            </span>
+            <span>
+              {t.storedInPod} · {hub.project.startDate} – {hub.project.endDate}
+            </span>
+          </footer>
         </StandaloneOnly>
       </div>
       <KeyboardShortcuts tabs={TABS} canEdit={canEdit} username={hub.username} />

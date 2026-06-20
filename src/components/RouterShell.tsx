@@ -9,25 +9,32 @@
 // Anonymous visitors get the neutral hub landing + login. Owner detection is
 // WAC-gated: only a workspace owner can enumerate /emai/projects/.
 
-import { useCallback, useEffect, useState } from "react";
 import {
-  Avatar, AvatarFallback, Badge, Button, Card, CardContent, Spinner, Symbol,
+  Avatar,
+  AvatarFallback,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  Spinner,
+  Symbol,
 } from "@mind-studio/ui";
 import { ArrowRight, LogOut } from "lucide-react";
-import { ensureSession, logout, usernameOf } from "@/lib/solid/auth";
-import {
-  loadMemberIndex, loadAllProjects, type ProjectSummary,
-} from "@/lib/solid/data";
-import { projectHost } from "@/lib/solid/config";
-import type { ProjectRef } from "@/lib/solid/turtle";
+import { useCallback, useEffect, useState } from "react";
 import { ROLE_LABEL } from "@/lib/labels";
-import { t } from "@/lib/strings";
 import { profile } from "@/lib/profile";
+import { ensureSession, logout, usernameOf } from "@/lib/solid/auth";
+import { projectHost } from "@/lib/solid/config";
+import { loadAllProjects, loadMemberIndex, type ProjectSummary } from "@/lib/solid/data";
+import type { ProjectRef } from "@/lib/solid/turtle";
+import { t } from "@/lib/strings";
 import { Landing } from "./Landing";
 import { WorkspaceShell } from "./WorkspaceShell";
 
 const ROLE_BADGE: Record<string, "default" | "secondary" | "outline"> = {
-  Owner: "default", Member: "secondary", Guest: "outline",
+  Owner: "default",
+  Member: "secondary",
+  Guest: "outline",
 };
 
 /** Cross-subdomain hop carrying ?sso=1 so the target silently re-auths. */
@@ -66,9 +73,7 @@ export function RouterShell() {
     }
     if (projects && projects.length) {
       const name =
-        projects
-          .flatMap((p) => p.meta.members)
-          .find((m) => m.agent === webId)?.name ?? username;
+        projects.flatMap((p) => p.meta.members).find((m) => m.agent === webId)?.name ?? username;
       setState({ phase: "owner", projects, displayName: name });
       return;
     }
@@ -131,7 +136,11 @@ export function RouterShell() {
         <Header kicker={t.yourProjects} title={t.chooseProject} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {state.entries.map((e) => (
-            <a key={e.projectId} href={hopUrl(e.host || projectHost(e.projectId))} className="group">
+            <a
+              key={e.projectId}
+              href={hopUrl(e.host || projectHost(e.projectId))}
+              className="group"
+            >
               <Card className="glow-hover h-full transition-colors group-hover:border-primary/40">
                 <CardContent className="flex items-center gap-3 p-4">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -169,7 +178,9 @@ function Centered({ children }: { children: React.ReactNode }) {
 function Header({ kicker, title, meta }: { kicker: string; title: string; meta?: string }) {
   return (
     <section className="pt-2 pb-6">
-      <p className="font-display text-xs font-semibold tracking-wide text-primary uppercase">{kicker}</p>
+      <p className="font-display text-xs font-semibold tracking-wide text-primary uppercase">
+        {kicker}
+      </p>
       <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">{title}</h1>
       {meta && <p className="mt-2 text-sm text-muted-foreground">{meta}</p>}
     </section>
@@ -177,14 +188,23 @@ function Header({ kicker, title, meta }: { kicker: string; title: string; meta?:
 }
 
 function initials(name: string): string {
-  return name.split(/\s+/).map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+  return name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function ApexChrome({ displayName, children }: { displayName: string; children: React.ReactNode }) {
   return (
     <div>
       <div className="emai-backdrop fixed inset-0 -z-10" aria-hidden />
-      <div className="emai-aurora pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]" aria-hidden />
+      <div
+        className="emai-aurora pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]"
+        aria-hidden
+      />
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6">
         <header className="flex items-center justify-between gap-3 border-b border-border/60 py-3">
           <div className="flex items-center gap-3">

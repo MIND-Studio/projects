@@ -9,31 +9,33 @@
 // every path), so navigation is route-aware HERE: <Link> changes the URL,
 // RouterShell re-mounts us, and we pick the view from usePathname().
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Avatar, AvatarFallback, Button, Symbol } from "@mind-studio/ui";
+import { CalendarDays, FileText, LayoutDashboard, LogOut, SquareKanban, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Avatar, AvatarFallback, Button, Symbol,
-} from "@mind-studio/ui";
-import {
-  CalendarDays, FileText, LayoutDashboard, LogOut, SquareKanban, Users,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { profile } from "@/lib/profile";
 import { logout } from "@/lib/solid/auth";
+import { HUB_BRANDING } from "@/lib/solid/config";
 import {
-  loadCompany, loadOrgRegistry, loadWorkspaceBoard, loadWorkspaceMeetings,
-  loadWorkspaceBriefings, type ProjectSummary, type ProjectBoard,
-  type WorkspaceMeeting, type ProjectBriefings,
+  loadCompany,
+  loadOrgRegistry,
+  loadWorkspaceBoard,
+  loadWorkspaceBriefings,
+  loadWorkspaceMeetings,
+  type ProjectBoard,
+  type ProjectBriefings,
+  type ProjectSummary,
+  type WorkspaceMeeting,
 } from "@/lib/solid/data";
 import type { Company, OrgInfo } from "@/lib/solid/turtle";
-import { HUB_BRANDING } from "@/lib/solid/config";
-import { Overview } from "./workspace/Overview";
-import { Board } from "./workspace/Board";
-import { Calendar } from "./workspace/Calendar";
-import { People } from "./workspace/People";
-import { Briefings } from "./workspace/Briefings";
-import { initials, type WsData } from "./workspace/types";
-import { profile } from "@/lib/profile";
 import { t } from "@/lib/strings";
+import { Board } from "./workspace/Board";
+import { Briefings } from "./workspace/Briefings";
+import { Calendar } from "./workspace/Calendar";
+import { Overview } from "./workspace/Overview";
+import { People } from "./workspace/People";
+import { initials, type WsData } from "./workspace/types";
 
 // Hrefs reuse EXISTING project route paths so Next has a page to render — on the
 // apex every route renders RouterShell→WorkspaceShell, and the path selects the
@@ -48,7 +50,8 @@ const TABS = [
 ];
 
 export function WorkspaceShell({
-  projects, displayName,
+  projects,
+  displayName,
 }: {
   projects: ProjectSummary[];
   displayName: string;
@@ -66,33 +69,59 @@ export function WorkspaceShell({
   );
 
   const refreshBriefings = useCallback(() => {
-    loadWorkspaceBriefings(refs).then(setBriefings).catch(() => setBriefings([]));
+    loadWorkspaceBriefings(refs)
+      .then(setBriefings)
+      .catch(() => setBriefings([]));
   }, [refs]);
 
   useEffect(() => {
-    loadCompany().then(setCompany).catch(() => setCompany(null));
-    loadOrgRegistry().then(setRegistry).catch(() => setRegistry([]));
-    loadWorkspaceBoard(refs).then(setBoard).catch(() => setBoard([]));
-    loadWorkspaceMeetings(refs).then(setMeetings).catch(() => setMeetings([]));
+    loadCompany()
+      .then(setCompany)
+      .catch(() => setCompany(null));
+    loadOrgRegistry()
+      .then(setRegistry)
+      .catch(() => setRegistry([]));
+    loadWorkspaceBoard(refs)
+      .then(setBoard)
+      .catch(() => setBoard([]));
+    loadWorkspaceMeetings(refs)
+      .then(setMeetings)
+      .catch(() => setMeetings([]));
     refreshBriefings();
   }, [refs, refreshBriefings]);
 
-  const data: WsData = { projects, company, registry, board, meetings, briefings, refreshBriefings };
+  const data: WsData = {
+    projects,
+    company,
+    registry,
+    board,
+    meetings,
+    briefings,
+    refreshBriefings,
+  };
 
   const view = (() => {
     switch (pathname) {
-      case "/board": return <Board data={data} />;
-      case "/meetings": return <Calendar data={data} />;
-      case "/team": return <People data={data} />;
-      case "/briefings": return <Briefings data={data} />;
-      default: return <Overview data={data} />;
+      case "/board":
+        return <Board data={data} />;
+      case "/meetings":
+        return <Calendar data={data} />;
+      case "/team":
+        return <People data={data} />;
+      case "/briefings":
+        return <Briefings data={data} />;
+      default:
+        return <Overview data={data} />;
     }
   })();
 
   return (
     <div>
       <div className="emai-backdrop fixed inset-0 -z-10" aria-hidden />
-      <div className="emai-aurora pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]" aria-hidden />
+      <div
+        className="emai-aurora pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]"
+        aria-hidden
+      />
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6">
         <header className="sticky top-0 z-40 -mx-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:-mx-6 sm:px-6">
           <div className="flex items-center justify-between gap-3 py-3">
@@ -101,7 +130,8 @@ export function WorkspaceShell({
               <span className="font-display text-lg font-semibold tracking-tight">
                 {profile.appName}
                 <span className="hidden font-normal text-muted-foreground sm:inline">
-                  {" "}· {HUB_BRANDING.title}
+                  {" "}
+                  · {HUB_BRANDING.title}
                 </span>
               </span>
             </Link>

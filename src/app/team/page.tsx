@@ -4,8 +4,6 @@
 // Owners manage the consortium here: invite, change role, remove (the pod's
 // WAC is recompiled from the new membership list on every change).
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   Avatar,
   AvatarFallback,
@@ -31,21 +29,32 @@ import {
   NativeSelectOption,
   Spinner,
 } from "@mind-studio/ui";
-import { toast } from "sonner";
 import {
-  Bot, Building2, ChevronRight, MoreHorizontal, ShieldCheck, Trash2, UserPlus,
+  Bot,
+  Building2,
+  ChevronRight,
+  MoreHorizontal,
+  ShieldCheck,
+  Trash2,
+  UserPlus,
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Shell, useHub } from "@/components/Shell";
+import { ROLE_LABEL } from "@/lib/labels";
+import { ORG_ROLE_LABEL, orgsOf } from "@/lib/orgs";
+import { profile } from "@/lib/profile";
+import { usernameOf } from "@/lib/solid/auth";
 import { loadTracker } from "@/lib/solid/data";
 import {
-  addParticipant, changeParticipantRole, removeParticipant, removalBlocker,
+  addParticipant,
+  changeParticipantRole,
+  removalBlocker,
+  removeParticipant,
 } from "@/lib/solid/participants";
-import { orgsOf, ORG_ROLE_LABEL } from "@/lib/orgs";
-import { usernameOf } from "@/lib/solid/auth";
-import { ROLE_LABEL } from "@/lib/labels";
-import { profile } from "@/lib/profile";
-import { t } from "@/lib/strings";
 import type { Membership, ProjectMeta, Role, Tracker } from "@/lib/solid/turtle";
+import { t } from "@/lib/strings";
 
 function initialsOf(name: string): string {
   return name
@@ -64,7 +73,10 @@ const ROLE_BADGE_VARIANT: Record<Role, "default" | "secondary" | "outline"> = {
 };
 
 function InviteDialog({
-  open, onOpenChange, orgs, onDone,
+  open,
+  onOpenChange,
+  orgs,
+  onDone,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -90,13 +102,14 @@ function InviteDialog({
       });
       toast.success(t.roleNow(name.trim(), ROLE_LABEL[role]));
       onOpenChange(false);
-      setUsername(""); setName(""); setOrg(""); setRole("Guest");
+      setUsername("");
+      setName("");
+      setOrg("");
+      setRole("Guest");
       onDone(project);
     } catch (err) {
       toast.error(
-        (err as { status?: number }).status === 403
-          ? t.inviteForbidden
-          : t.inviteFailed(err),
+        (err as { status?: number }).status === 403 ? t.inviteForbidden : t.inviteFailed(err),
       );
     } finally {
       setBusy(false);
@@ -109,10 +122,7 @@ function InviteDialog({
         <DialogHeader>
           <DialogTitle className="font-display">{t.invitePartner}</DialogTitle>
           <DialogDescription>
-            {t.inviteDialogDesc(
-              profile.appName,
-              username.trim() || t.usernamePlaceholder,
-            )}
+            {t.inviteDialogDesc(profile.appName, username.trim() || t.usernamePlaceholder)}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
@@ -190,7 +200,12 @@ function InviteDialog({
 }
 
 function MemberRow({
-  m, isOwner, openTasks, project, selfWebId, onChanged,
+  m,
+  isOwner,
+  openTasks,
+  project,
+  selfWebId,
+  onChanged,
 }: {
   m: Membership;
   isOwner: boolean;
@@ -283,11 +298,7 @@ function MemberRow({
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-xs">{t.changeRole}</DropdownMenuLabel>
             {(["Owner", "Member", "Guest"] as Role[]).map((r) => (
-              <DropdownMenuItem
-                key={r}
-                disabled={r === m.role}
-                onClick={() => void setRole(r)}
-              >
+              <DropdownMenuItem key={r} disabled={r === m.role} onClick={() => void setRole(r)}>
                 <ShieldCheck className={r === m.role ? "text-primary" : ""} />
                 {ROLE_LABEL[r]}
               </DropdownMenuItem>
@@ -309,9 +320,7 @@ function MemberRow({
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="font-display">{t.removeMemberTitle(name)}</DialogTitle>
-            <DialogDescription>
-              {t.removeMemberDesc(name, m.org ?? "")}
-            </DialogDescription>
+            <DialogDescription>{t.removeMemberDesc(name, m.org ?? "")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setConfirmRemove(false)} disabled={busy}>
@@ -336,7 +345,9 @@ function Team() {
   const [inviteOpen, setInviteOpen] = useState(false);
 
   useEffect(() => {
-    loadTracker().then(setTracker).catch(() => setTracker(null));
+    loadTracker()
+      .then(setTracker)
+      .catch(() => setTracker(null));
   }, []);
 
   const orgs = orgsOf(project.members);
@@ -352,9 +363,7 @@ function Team() {
     <div className="stagger space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-lg font-semibold tracking-tight">
-            {t.teamAndPartner}
-          </h1>
+          <h1 className="font-display text-lg font-semibold tracking-tight">{t.teamAndPartner}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {t.orgsAndPeople(
               orgs.length,
@@ -413,10 +422,10 @@ function Team() {
                 <Bot className="size-4" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">{kai.name ?? profile.assistantName}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t.assistantSubtitle}
+                <span className="block text-sm font-medium">
+                  {kai.name ?? profile.assistantName}
                 </span>
+                <span className="block text-xs text-muted-foreground">{t.assistantSubtitle}</span>
               </span>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/chat">{t.askAssistant(profile.assistantName)}</Link>

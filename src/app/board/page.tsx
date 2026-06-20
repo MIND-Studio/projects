@@ -5,8 +5,6 @@
 // the issue detail sheet (deep link: /board?issue=TASK-XXX, also via ⌘K);
 // the AP badge on a card opens the Arbeitspaket sheet (/board?ap=APx).
 
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Badge,
   Button,
@@ -23,31 +21,30 @@ import {
   Skeleton,
   Textarea,
 } from "@mind-studio/ui";
-import { toast } from "sonner";
 import { Eye, Plus } from "lucide-react";
-import { Shell, useHub } from "@/components/Shell";
-import { IssueSheet } from "@/components/IssueSheet";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { EpicSheet } from "@/components/EpicSheet";
-import { loadTracker, moveIssue, createIssue } from "@/lib/solid/data";
-import {
-  STATES, type Tracker, type Issue, type IssueState,
-} from "@/lib/solid/turtle";
+import { IssueSheet } from "@/components/IssueSheet";
+import { Shell, useHub } from "@/components/Shell";
 import { STATE_LABEL } from "@/lib/labels";
-import { t } from "@/lib/strings";
 import { usernameOf } from "@/lib/solid/auth";
+import { createIssue, loadTracker, moveIssue } from "@/lib/solid/data";
+import { type Issue, type IssueState, STATES, type Tracker } from "@/lib/solid/turtle";
+import { t } from "@/lib/strings";
 
 // Column order; labels come from STATE_LABEL so they follow the active locale.
-const LANE_STATES: IssueState[] = [
-  "backlog",
-  "todo",
-  "in-progress",
-  "review",
-  "done",
-];
+const LANE_STATES: IssueState[] = ["backlog", "todo", "in-progress", "review", "done"];
 const LANES = LANE_STATES.map((state) => ({ state, label: STATE_LABEL[state] }));
 
 function IssueCard({
-  issue, canEdit, onMove, onOpen, onOpenEpic, members,
+  issue,
+  canEdit,
+  onMove,
+  onOpen,
+  onOpenEpic,
+  members,
 }: {
   issue: Issue;
   canEdit: boolean;
@@ -59,8 +56,8 @@ function IssueCard({
   const overdue =
     issue.due && issue.state !== "done" && issue.due < new Date().toISOString().slice(0, 10);
   const assignee = issue.assignee
-    ? members.get(issue.assignee) ?? usernameOf(issue.assignee)
-    : issue.ownerName ?? "";
+    ? (members.get(issue.assignee) ?? usernameOf(issue.assignee))
+    : (issue.ownerName ?? "");
   return (
     <div
       draggable={canEdit}
@@ -98,9 +95,7 @@ function IssueCard({
       <p className="mt-1.5 text-sm leading-snug">{issue.title}</p>
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span className="truncate">{assignee}</span>
-        {issue.due && (
-          <span className={overdue ? "font-medium text-error" : ""}>{issue.due}</span>
-        )}
+        {issue.due && <span className={overdue ? "font-medium text-error" : ""}>{issue.due}</span>}
       </div>
       {canEdit && (
         <div className="mt-2 [&>div]:w-full" onClick={(e) => e.stopPropagation()}>
@@ -124,7 +119,12 @@ function IssueCard({
 }
 
 function NewIssueDialog({
-  epics, members, onCreated, open, onOpenChange, initialEpic,
+  epics,
+  members,
+  onCreated,
+  open,
+  onOpenChange,
+  initialEpic,
 }: {
   epics: string[];
   members: { webId: string; name: string }[];
@@ -159,7 +159,11 @@ function NewIssueDialog({
         description: description.trim(),
       });
       onOpenChange(false);
-      setTitle(""); setEpic(""); setDue(""); setAssignee(""); setDescription("");
+      setTitle("");
+      setEpic("");
+      setDue("");
+      setAssignee("");
+      setDescription("");
       onCreated(id);
     } catch (err) {
       toast.error(t.createFailed(err));
@@ -173,9 +177,7 @@ function NewIssueDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display">{t.newTask}</DialogTitle>
-          <DialogDescription className="sr-only">
-            {t.newTaskDialogDesc}
-          </DialogDescription>
+          <DialogDescription className="sr-only">{t.newTaskDialogDesc}</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-2">
@@ -199,7 +201,9 @@ function NewIssueDialog({
               >
                 <NativeSelectOption value="">—</NativeSelectOption>
                 {epics.map((id) => (
-                  <NativeSelectOption key={id} value={id}>{id}</NativeSelectOption>
+                  <NativeSelectOption key={id} value={id}>
+                    {id}
+                  </NativeSelectOption>
                 ))}
               </NativeSelect>
             </div>
@@ -268,15 +272,15 @@ function Board() {
   const epicId = params.get("ap");
   const selectedEpic = tracker?.epics.find((e) => e.id === epicId) ?? null;
 
-  const members = new Map(
-    hub.project.members.map((m) => [m.agent, m.name ?? usernameOf(m.agent)]),
-  );
+  const members = new Map(hub.project.members.map((m) => [m.agent, m.name ?? usernameOf(m.agent)]));
   const humanMembers = hub.project.members
     .filter((m) => m.kind !== "Worker")
     .map((m) => ({ webId: m.agent, name: m.name ?? m.agent }));
 
   const refresh = useCallback(() => {
-    loadTracker().then(setTracker).catch((e) => toast.error(t.boardLoadFailed(e)));
+    loadTracker()
+      .then(setTracker)
+      .catch((e) => toast.error(t.boardLoadFailed(e)));
   }, []);
   useEffect(refresh, [refresh]);
 
@@ -308,9 +312,7 @@ function Board() {
       toast.success(t.movedTo(id, STATE_LABEL[state]));
     } catch (e) {
       toast.error(
-        (e as { status?: number }).status === 403
-          ? t.issueReadonly
-          : t.issueSaveFailed(e),
+        (e as { status?: number }).status === 403 ? t.issueReadonly : t.issueSaveFailed(e),
       );
     }
     refresh();
@@ -334,10 +336,7 @@ function Board() {
         <div className="flex items-baseline gap-3">
           <h1 className="font-display text-lg font-semibold tracking-tight">Board</h1>
           <span className="text-xs text-muted-foreground">
-            {t.doneOfTotal(
-              active.filter((i) => i.state === "done").length,
-              active.length,
-            )}
+            {t.doneOfTotal(active.filter((i) => i.state === "done").length, active.length)}
           </span>
         </div>
         {canEdit ? (

@@ -1,8 +1,8 @@
 "use client";
 
+import { cn } from "@mind-studio/ui";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { cn } from "@mind-studio/ui";
 
 /*
  * Markdown for pod content (Kai-Antworten, Briefings). GFM, no raw HTML

@@ -3,16 +3,31 @@
 // Data accessors — every read/write goes to the pod AS THE SIGNED-IN USER.
 // WAC on the project container is the only enforcement layer (PRD §6).
 
+import { profile } from "@/lib/profile";
 import { authedFetch } from "./auth";
 import { paths, projectRoot, workspacePaths } from "./config";
-import { profile } from "@/lib/profile";
-import { podMoveIssue, podUpdateIssue, podCreateIssue } from "./writes";
 import {
-  parseProject, parseTracker, parseState, parseMeeting, parseContainer, parseMemberIndex,
-  parseCompany, parseOrgRegistry,
-  type ProjectMeta, type Tracker, type Meeting, type IssueState, type IssuePatch,
-  type Role, type ProjectRef, type Issue, type Epic, type Company, type OrgInfo,
+  type Company,
+  type Epic,
+  type Issue,
+  type IssuePatch,
+  type IssueState,
+  type Meeting,
+  type OrgInfo,
+  type ProjectMeta,
+  type ProjectRef,
+  parseCompany,
+  parseContainer,
+  parseMeeting,
+  parseMemberIndex,
+  parseOrgRegistry,
+  parseProject,
+  parseState,
+  parseTracker,
+  type Role,
+  type Tracker,
 } from "./turtle";
+import { podCreateIssue, podMoveIssue, podUpdateIssue } from "./writes";
 
 async function getText(url: string): Promise<string> {
   const r = await authedFetch()(url, { headers: { accept: "text/turtle" } });
@@ -74,14 +89,19 @@ export async function loadProjectSummary(projectId: string): Promise<ProjectSumm
     overdueTasks = issues.filter(
       (i) => OPEN_STATES.includes(i.state) && i.due && i.due < today,
     ).length;
-  } catch { /* no tracker yet */ }
+  } catch {
+    /* no tracker yet */
+  }
   try {
     const folder = `${root}meetings/`;
     const urls = parseContainer(folder, await getText(folder)).filter((u) => u.endsWith(".ttl"));
     const ms = await Promise.all(urls.map(async (u) => parseMeeting(u, await getText(u))));
     const now = new Date().toISOString().slice(0, 16);
-    nextMeeting = ms.filter((m) => m.start >= now).sort((a, b) => a.start.localeCompare(b.start))[0] ?? null;
-  } catch { /* no meetings */ }
+    nextMeeting =
+      ms.filter((m) => m.start >= now).sort((a, b) => a.start.localeCompare(b.start))[0] ?? null;
+  } catch {
+    /* no meetings */
+  }
   return { projectId, meta, openTasks, doneTasks, totalTasks, overdueTasks, nextMeeting };
 }
 
@@ -151,12 +171,16 @@ export async function loadWorkspaceBoard(projects: ProjectRefLite[]): Promise<Pr
 export type WorkspaceMeeting = Meeting & { projectId: string; projectTitle: string };
 
 /** Every project's meetings merged onto one timeline (sorted by start). */
-export async function loadWorkspaceMeetings(projects: ProjectRefLite[]): Promise<WorkspaceMeeting[]> {
+export async function loadWorkspaceMeetings(
+  projects: ProjectRefLite[],
+): Promise<WorkspaceMeeting[]> {
   const perProject = await Promise.all(
     projects.map(async ({ projectId, title }) => {
       const folder = `${projectRoot(projectId)}meetings/`;
       try {
-        const urls = parseContainer(folder, await getText(folder)).filter((u) => u.endsWith(".ttl"));
+        const urls = parseContainer(folder, await getText(folder)).filter((u) =>
+          u.endsWith(".ttl"),
+        );
         return await Promise.all(
           urls.map(async (u) => ({
             ...parseMeeting(u, await getText(u)),
@@ -180,7 +204,9 @@ export type ProjectBriefings = {
 };
 
 /** Latest published briefing + pending drafts per project (the approval inbox). */
-export async function loadWorkspaceBriefings(projects: ProjectRefLite[]): Promise<ProjectBriefings[]> {
+export async function loadWorkspaceBriefings(
+  projects: ProjectRefLite[],
+): Promise<ProjectBriefings[]> {
   return Promise.all(
     projects.map(async ({ projectId, title }) => {
       const root = projectRoot(projectId);
@@ -214,7 +240,8 @@ async function postIssueAction<T = unknown>(body: Record<string, unknown>): Prom
     body: JSON.stringify(body),
   });
   const data = (await r.json().catch(() => ({}))) as { error?: string } & T;
-  if (!r.ok) throw Object.assign(new Error(data.error ?? `issues → ${r.status}`), { status: r.status });
+  if (!r.ok)
+    throw Object.assign(new Error(data.error ?? `issues → ${r.status}`), { status: r.status });
   return data;
 }
 
@@ -244,9 +271,7 @@ export async function createIssue(input: {
 export async function loadMeetings(): Promise<Meeting[]> {
   const listing = await getText(paths.meetings);
   const urls = parseContainer(paths.meetings, listing).filter((u) => u.endsWith(".ttl"));
-  const meetings = await Promise.all(
-    urls.map(async (u) => parseMeeting(u, await getText(u))),
-  );
+  const meetings = await Promise.all(urls.map(async (u) => parseMeeting(u, await getText(u))));
   meetings.sort((a, b) => a.start.localeCompare(b.start));
   return meetings;
 }
@@ -264,7 +289,9 @@ export async function loadChat(username: string): Promise<ChatMsg[]> {
     if ((e as { status?: number }).status === 404) return [];
     throw e;
   }
-  const urls = parseContainer(folder, listing).filter((u) => u.endsWith(".md")).sort();
+  const urls = parseContainer(folder, listing)
+    .filter((u) => u.endsWith(".md"))
+    .sort();
   return Promise.all(
     urls.map(async (u) => {
       const name = u.split("/").pop()!;

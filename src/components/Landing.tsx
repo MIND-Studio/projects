@@ -5,21 +5,21 @@
 // a light-shaft hero, the login card always visible on the right. Logged-in
 // users never see this — Shell renders the dashboard for them.
 
+import { Symbol } from "@mind-studio/ui";
 import {
   CalendarDays,
   FileText,
   GanttChartSquare,
+  type LucideIcon,
   MessageSquare,
   ShieldCheck,
   SquareKanban,
   Users,
-  type LucideIcon,
 } from "lucide-react";
-import { Symbol } from "@mind-studio/ui";
-import { LoginPanel } from "./LoginCard";
-import { currentBranding } from "@/lib/solid/config";
 import { profile } from "@/lib/profile";
+import { currentBranding } from "@/lib/solid/config";
 import { t } from "@/lib/strings";
+import { LoginPanel } from "./LoginCard";
 
 // Mirrors Shell's nav (same icons) — what the hub gives you once you're in.
 // The Chat card only appears when the assistant is enabled (it's the only nav
@@ -99,9 +99,7 @@ export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
 
             <p className="mt-6 max-w-md text-lg leading-relaxed text-muted-foreground">
               {t.landingHeroLead}{" "}
-              <span className="text-foreground/90">
-                {t.landingHeroFeatures}
-              </span>{" "}
+              <span className="text-foreground/90">{t.landingHeroFeatures}</span>{" "}
               {t.landingHeroLeadTail}
             </p>
             <p className="mt-3 max-w-md text-sm text-muted-foreground">
@@ -147,13 +145,13 @@ export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
               {t.landingMeet(profile.assistantName)}
             </h2>
             <div className="mt-4 grid gap-4 text-muted-foreground sm:grid-cols-2 sm:gap-10">
-              <p>
-                {t.landingMeetP1(profile.assistantName)}
-              </p>
+              <p>{t.landingMeetP1(profile.assistantName)}</p>
               <p className="flex gap-3">
                 <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
                 <span>
-                  <span className="text-foreground/90">{t.landingAccountWord(profile.appName)}</span>{" "}
+                  <span className="text-foreground/90">
+                    {t.landingAccountWord(profile.appName)}
+                  </span>{" "}
                   {t.landingAccountP2}
                 </span>
               </p>

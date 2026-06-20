@@ -9,14 +9,23 @@
 
 import { randomBytes } from "node:crypto";
 import { projectRoot } from "../solid/config";
-import { workerFor } from "./worker";
-import { commitToRepo, gitConfigured, type CommitAuthor, type CommitFile } from "./git";
 import {
-  parseState, rewriteIssue, rewriteIssueState, appendIssue,
-  type IssueState, type IssuePatch,
+  appendIssue,
+  type IssuePatch,
+  type IssueState,
+  parseState,
+  rewriteIssue,
+  rewriteIssueState,
 } from "../solid/turtle";
+import { type CommitAuthor, type CommitFile, commitToRepo, gitConfigured } from "./git";
+import { workerFor } from "./worker";
 
-export type Actor = { webId: string; username: string; name: string; actorKind?: "human" | "agent" };
+export type Actor = {
+  webId: string;
+  username: string;
+  name: string;
+  actorKind?: "human" | "agent";
+};
 
 export type IssueAction =
   | { action: "move"; issue: string; to: IssueState; comment?: string }
@@ -34,8 +43,13 @@ export type IssueAction =
 const ISSUES_BASE = (projectId: string) => `${projectId}/.mind/issues`;
 
 const slugify = (s: string) =>
-  s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "issue";
+  s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60) || "issue";
 
 /** YYYY-MM-DD-HHMM (sortable event-file prefix). */
 function stamp(d = new Date()): { ymd: string; hhmm: string; iso: string } {
@@ -60,7 +74,8 @@ const yamlVal = (v: string) =>
 
 function buildDoc(fm: Record<string, string | null | undefined>, body = ""): string {
   let out = "---\n";
-  for (const [k, v] of Object.entries(fm)) if (v != null && v !== "") out += `${k}: ${yamlVal(String(v))}\n`;
+  for (const [k, v] of Object.entries(fm))
+    if (v != null && v !== "") out += `${k}: ${yamlVal(String(v))}\n`;
   out += "---\n";
   if (body.trim()) out += "\n" + body.trim() + "\n";
   return out;
@@ -104,15 +119,27 @@ export async function applyIssueAction(
     const { url, k, issues } = await loadState(projectId);
     const issue = issues.find((i) => i.id === a.issue);
     if (!issue) throw Object.assign(new Error(`issue ${a.issue} not found`), { status: 404 });
-    if (!issue.gitPath) throw Object.assign(new Error(`${a.issue} has no ekai:gitPath`), { status: 409 });
+    if (!issue.gitPath)
+      throw Object.assign(new Error(`${a.issue} has no ekai:gitPath`), { status: 409 });
     const kind = stateKind(a.to);
     const ev = buildDoc(
-      { id: `${a.issue}-${ymd}-${hhmm}`, kind, actor: actor.webId, actorKind, at: iso, from: issue.state, to: a.to },
+      {
+        id: `${a.issue}-${ymd}-${hhmm}`,
+        kind,
+        actor: actor.webId,
+        actorKind,
+        at: iso,
+        from: issue.state,
+        to: a.to,
+      },
       a.comment ?? "",
     );
     const committed = await commit(`${kind}: ${issue.handle} → ${a.to}`, author, (tx) =>
       tx.stage([
-        { path: `${base}/${issue.gitPath}/events/${ymd}-${hhmm}-${actor.username}-${kind}.md`, content: ev },
+        {
+          path: `${base}/${issue.gitPath}/events/${ymd}-${hhmm}-${actor.username}-${kind}.md`,
+          content: ev,
+        },
       ]),
     );
     await k.put(url, rewriteIssueState(await k.getText(url), a.issue, a.to), "text/turtle");
@@ -127,8 +154,13 @@ export async function applyIssueAction(
     const folder = `00_general_issues/${Math.floor(Date.now() / 1000)}_${randomBytes(2).toString("hex")}`;
     const issueMd = buildDoc(
       {
-        id, slug: slugify(a.title), type: "general", title: a.title,
-        author: actor.webId, created: ymd, epic: a.epic ?? undefined,
+        id,
+        slug: slugify(a.title),
+        type: "general",
+        title: a.title,
+        author: actor.webId,
+        created: ymd,
+        epic: a.epic ?? undefined,
         due: a.due ?? undefined,
       },
       a.description ?? "",
@@ -139,17 +171,30 @@ export async function applyIssueAction(
     );
     const files: CommitFile[] = [
       { path: `${base}/${folder}/issue.md`, content: issueMd },
-      { path: `${base}/${folder}/events/${ymd}-${hhmm}-${actor.username}-open.md`, content: openEv },
+      {
+        path: `${base}/${folder}/events/${ymd}-${hhmm}-${actor.username}-open.md`,
+        content: openEv,
+      },
     ];
     if (a.assignee) {
       files.push({
         path: `${base}/${folder}/events/${ymd}-${hhmm}-${actor.username}-claim.md`,
-        content: buildDoc({ id: `${id}-claim`, kind: "claim", actor: a.assignee, actorKind: "human", at: iso }, ""),
+        content: buildDoc(
+          { id: `${id}-claim`, kind: "claim", actor: a.assignee, actorKind: "human", at: iso },
+          "",
+        ),
       });
     }
     const committed = await commit(`open: ${id} — ${a.title}`, author, (tx) => tx.stage(files));
     const { ttl } = appendIssue(await k.getText(url), {
-      id, title: a.title, state, epic: a.epic ?? null, due: a.due ?? null, assignee: a.assignee ?? null, gitPath: folder, description: a.description,
+      id,
+      title: a.title,
+      state,
+      epic: a.epic ?? null,
+      due: a.due ?? null,
+      assignee: a.assignee ?? null,
+      gitPath: folder,
+      description: a.description,
     });
     await k.put(url, ttl, "text/turtle");
     return { id, message: `${id} angelegt${committed ? "" : GIT_SKIPPED}` };
@@ -160,7 +205,8 @@ export async function applyIssueAction(
   const { url, k, issues } = await loadState(projectId);
   const issue = issues.find((i) => i.id === a.issue);
   if (!issue) throw Object.assign(new Error(`issue ${a.issue} not found`), { status: 404 });
-  if (!issue.gitPath) throw Object.assign(new Error(`${a.issue} has no ekai:gitPath`), { status: 409 });
+  if (!issue.gitPath)
+    throw Object.assign(new Error(`${a.issue} has no ekai:gitPath`), { status: 409 });
   const dir = `${base}/${issue.gitPath}`;
   const p = a.patch;
 
@@ -172,7 +218,8 @@ export async function applyIssueAction(
     // issue.md edit (immutable id/created/author preserved; mutable facts amended).
     if (["title", "due", "epic", "description"].some((k2) => k2 in p)) {
       const cur = tx.read(`${dir}/issue.md`);
-      if (!cur) throw Object.assign(new Error(`${a.issue}/issue.md missing in git`), { status: 409 });
+      if (!cur)
+        throw Object.assign(new Error(`${a.issue}/issue.md missing in git`), { status: 409 });
       const { fm, body } = parseFrontmatter(cur);
       if (p.title != null) fm.title = p.title;
       if ("due" in p) p.due ? (fm.due = p.due) : delete fm.due;
@@ -183,14 +230,34 @@ export async function applyIssueAction(
       const kind = stateKind(p.state);
       files.push({
         path: `${dir}/events/${ymd}-${hhmm}-${actor.username}-${kind}.md`,
-        content: buildDoc({ id: `${a.issue}-${ymd}-${hhmm}`, kind, actor: actor.webId, actorKind, at: iso, from: issue.state, to: p.state }, ""),
+        content: buildDoc(
+          {
+            id: `${a.issue}-${ymd}-${hhmm}`,
+            kind,
+            actor: actor.webId,
+            actorKind,
+            at: iso,
+            from: issue.state,
+            to: p.state,
+          },
+          "",
+        ),
       });
     }
     if ("assignee" in p) {
       const assigning = !!p.assignee;
       files.push({
         path: `${dir}/events/${ymd}-${hhmm}-${actor.username}-${assigning ? "claim" : "release"}.md`,
-        content: buildDoc({ id: `${a.issue}-${ymd}-${hhmm}-a`, kind: assigning ? "claim" : "release", actor: assigning ? p.assignee! : actor.webId, actorKind, at: iso }, ""),
+        content: buildDoc(
+          {
+            id: `${a.issue}-${ymd}-${hhmm}-a`,
+            kind: assigning ? "claim" : "release",
+            actor: assigning ? p.assignee! : actor.webId,
+            actorKind,
+            at: iso,
+          },
+          "",
+        ),
       });
     }
     tx.stage(files);

@@ -16,15 +16,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@mind-studio/ui";
-import Link from "next/link";
 import { Plus, TriangleAlert, Users } from "lucide-react";
-import { Markdown } from "./Markdown";
-import { CommentThread } from "./CommentThread";
-import { useHub } from "./Shell";
-import { orgsOf, orgMatches } from "@/lib/orgs";
-import type { Epic, Issue, IssueState } from "@/lib/solid/turtle";
+import Link from "next/link";
 import { STATE_LABEL } from "@/lib/labels";
+import { orgMatches, orgsOf } from "@/lib/orgs";
+import type { Epic, Issue, IssueState } from "@/lib/solid/turtle";
 import { t } from "@/lib/strings";
+import { CommentThread } from "./CommentThread";
+import { Markdown } from "./Markdown";
+import { useHub } from "./Shell";
 
 const STATE_DOT: Record<IssueState, string> = {
   backlog: "bg-muted-foreground",
@@ -82,7 +82,10 @@ export function EpicSheet({
   const done = tasks.filter((i) => i.state === "done").length;
   const overdue = tasks.filter((i) => i.due && i.state !== "done" && i.due < today);
   const pct = tasks.length ? (done / tasks.length) * 100 : 0;
-  const dues = tasks.map((i) => i.due).filter((d): d is string => !!d).sort();
+  const dues = tasks
+    .map((i) => i.due)
+    .filter((d): d is string => !!d)
+    .sort();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -112,30 +115,26 @@ export function EpicSheet({
           {epic.lead && (
             <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <Users className="size-4 text-primary" />
-              {leadOrgs.length > 0 ? (
-                leadOrgs.map((o, idx) => (
-                  <span key={o.slug}>
-                    {idx > 0 && <span className="mr-2">·</span>}
-                    <Link
-                      href={`/orgs/${o.slug}`}
-                      className="transition-colors hover:text-primary"
-                      title={t.openTitle(o.name)}
-                    >
-                      {o.name}
-                    </Link>
-                  </span>
-                ))
-              ) : (
-                epic.lead
-              )}
+              {leadOrgs.length > 0
+                ? leadOrgs.map((o, idx) => (
+                    <span key={o.slug}>
+                      {idx > 0 && <span className="mr-2">·</span>}
+                      <Link
+                        href={`/orgs/${o.slug}`}
+                        className="transition-colors hover:text-primary"
+                        title={t.openTitle(o.name)}
+                      >
+                        {o.name}
+                      </Link>
+                    </span>
+                  ))
+                : epic.lead}
             </p>
           )}
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                {t.tasksDoneOf(done, tasks.length)}
-              </span>
+              <span>{t.tasksDoneOf(done, tasks.length)}</span>
               <span className="font-mono">
                 {Math.round(pct)}%
                 {dues.length > 0 && (
@@ -157,13 +156,9 @@ export function EpicSheet({
 
           <Separator />
           <div>
-            <p className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">
-              {t.tasks}
-            </p>
+            <p className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">{t.tasks}</p>
             {tasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t.noTasksInAp}
-              </p>
+              <p className="text-sm text-muted-foreground">{t.noTasksInAp}</p>
             ) : (
               <ul className="stagger space-y-0.5">
                 {tasks.map((i) => {

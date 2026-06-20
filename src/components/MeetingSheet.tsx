@@ -4,7 +4,6 @@
 // organizer, comments, and calendar export (.ics download + Google link).
 // Opened from /meetings (row click or ?m=MTG-XXX deep link / ⌘K).
 
-import Link from "next/link";
 import {
   Badge,
   Button,
@@ -17,13 +16,14 @@ import {
   SheetTitle,
 } from "@mind-studio/ui";
 import { CalendarPlus, Clock, ExternalLink, MapPin, User } from "lucide-react";
-import { Markdown } from "./Markdown";
-import { CommentThread } from "./CommentThread";
-import { useHub } from "./Shell";
+import Link from "next/link";
 import { downloadIcs, googleCalendarUrl } from "@/lib/ics";
 import { usernameOf } from "@/lib/solid/auth";
-import { t, dateLocale } from "@/lib/strings";
 import type { Meeting } from "@/lib/solid/turtle";
+import { dateLocale, t } from "@/lib/strings";
+import { CommentThread } from "./CommentThread";
+import { Markdown } from "./Markdown";
+import { useHub } from "./Shell";
 
 const fmtDay = (iso: string) =>
   new Date(iso).toLocaleDateString(dateLocale, {
@@ -61,13 +61,9 @@ export function MeetingSheet({
         <SheetHeader className="pb-2">
           <div className="flex items-center gap-2 text-xs">
             <span className="font-mono text-primary">{meeting.id}</span>
-            <Badge variant={past ? "outline" : "secondary"}>
-              {past ? t.past : t.upcoming}
-            </Badge>
+            <Badge variant={past ? "outline" : "secondary"}>{past ? t.past : t.upcoming}</Badge>
           </div>
-          <SheetTitle className="font-display text-lg leading-snug">
-            {meeting.title}
-          </SheetTitle>
+          <SheetTitle className="font-display text-lg leading-snug">{meeting.title}</SheetTitle>
           <SheetDescription className="sr-only">{t.detailsOf(meeting.id)}</SheetDescription>
         </SheetHeader>
 

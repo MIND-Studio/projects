@@ -1,10 +1,10 @@
 "use client";
 
 import { ThemeProvider, Toaster } from "@mind-studio/ui";
-import { useEffect, type ReactNode } from "react";
-import { emai } from "@/lib/theme/emai";
-import { profile } from "@/lib/profile";
+import { type ReactNode, useEffect } from "react";
 import { BrokerThemeSync } from "@/components/BrokerThemeSync";
+import { profile } from "@/lib/profile";
+import { emai } from "@/lib/theme/emai";
 
 /* One delegated pointer listener feeds the cursor-tracking spotlight on every
    .glow-hover card (--mx/--my are read by the ::after gradient in globals.css). */
