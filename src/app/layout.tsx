@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import { headers } from "next/headers";
 import { Providers } from "@/components/Providers";
 import { profile } from "@/lib/profile";
@@ -9,6 +9,8 @@ import "./globals.css";
 const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display-var" });
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans-var" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono-var" });
+// Serif for ui 0.7.0's h1–h3 rule, which resolves to --font-fraunces.
+const serif = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
 
 // Host-resolved per-project metadata: the document title/description reflect the
 // project of the subdomain being served (one image, many projects in subdomain
@@ -26,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang={profile.locale}
-      className={`dark ${display.variable} ${sans.variable} ${mono.variable}`}
+      className={`dark ${display.variable} ${sans.variable} ${mono.variable} ${serif.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">

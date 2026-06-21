@@ -55,6 +55,9 @@ export const emai: Theme = parseTheme(
     radius: "0.5rem",
     font: {
       sans: "var(--font-sans-var), ui-sans-serif, system-ui, sans-serif",
+      // ui 0.7.0 maps h1–h3 → --mind-font-serif; keep the fleet Fraunces stack.
+      serif:
+        'var(--font-fraunces), "Fraunces", ui-serif, Georgia, Cambria, "Times New Roman", serif',
       mono: "var(--font-mono-var), ui-monospace, SFMono-Regular, monospace",
     },
     logo: {
