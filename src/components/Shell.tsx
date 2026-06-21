@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Logo,
   Spinner,
   Symbol,
 } from "@mind-studio/ui";
@@ -267,10 +268,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <div className="flex items-center justify-between gap-3 py-3">
               <div className="flex items-center gap-2">
                 <Link href="/" className="group flex items-center gap-3">
-                  <Symbol className="h-8 w-8 rounded-lg transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105" />
-                  <span className="font-display text-lg font-semibold tracking-tight">
-                    {profile.appName}
-                  </span>
+                  <Logo label={profile.appName} />
                 </Link>
                 {myProjects.length > 1 && (
                   <DropdownMenu>
