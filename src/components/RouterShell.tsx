@@ -16,6 +16,7 @@ import {
   Button,
   Card,
   CardContent,
+  Logo,
   Spinner,
   Symbol,
 } from "@mind-studio/ui";
@@ -208,10 +209,7 @@ function ApexChrome({ displayName, children }: { displayName: string; children: 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 sm:px-6">
         <header className="flex items-center justify-between gap-3 border-b border-border/60 py-3">
           <div className="flex items-center gap-3">
-            <Symbol className="h-8 w-8 rounded-lg" />
-            <span className="font-display text-lg font-semibold tracking-tight">
-              {profile.appName}
-            </span>
+            <Logo label={profile.appName} />
           </div>
           <div className="flex items-center gap-2.5">
             <Avatar className="size-7">

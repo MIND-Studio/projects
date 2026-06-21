@@ -9,7 +9,7 @@
 // every path), so navigation is route-aware HERE: <Link> changes the URL,
 // RouterShell re-mounts us, and we pick the view from usePathname().
 
-import { Avatar, AvatarFallback, Button, Symbol } from "@mind-studio/ui";
+import { Avatar, AvatarFallback, Button, Logo } from "@mind-studio/ui";
 import { CalendarDays, FileText, LayoutDashboard, LogOut, SquareKanban, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -126,13 +126,9 @@ export function WorkspaceShell({
         <header className="sticky top-0 z-40 -mx-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:-mx-6 sm:px-6">
           <div className="flex items-center justify-between gap-3 py-3">
             <Link href="/" className="group flex items-center gap-3">
-              <Symbol className="h-8 w-8 rounded-lg transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105" />
-              <span className="font-display text-lg font-semibold tracking-tight">
-                {profile.appName}
-                <span className="hidden font-normal text-muted-foreground sm:inline">
-                  {" "}
-                  · {HUB_BRANDING.title}
-                </span>
+              <Logo label={profile.appName} />
+              <span className="hidden text-sm font-normal text-muted-foreground sm:inline">
+                · {HUB_BRANDING.title}
               </span>
             </Link>
             <div className="flex items-center gap-2.5">

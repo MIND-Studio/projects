@@ -5,7 +5,7 @@
 // a light-shaft hero, the login card always visible on the right. Logged-in
 // users never see this — Shell renders the dashboard for them.
 
-import { Symbol } from "@mind-studio/ui";
+import { Logo } from "@mind-studio/ui";
 import {
   CalendarDays,
   FileText,
@@ -61,13 +61,10 @@ export function Landing({ onLoggedIn }: { onLoggedIn?: () => void }) {
         {/* public header — no nav (anonymous) */}
         <header className="flex items-center justify-between py-5">
           <div className="flex items-center gap-3">
-            <Symbol className="h-8 w-8 rounded-lg" />
-            <span className="font-display text-lg font-semibold tracking-tight">
-              {profile.appName}
-              {brand.title !== profile.appName && (
-                <span className="font-normal text-muted-foreground"> · {brand.title}</span>
-              )}
-            </span>
+            <Logo label={profile.appName} />
+            {brand.title !== profile.appName && (
+              <span className="text-sm font-normal text-muted-foreground">· {brand.title}</span>
+            )}
           </div>
           <span className="hidden font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:inline">
             {brand.title}
